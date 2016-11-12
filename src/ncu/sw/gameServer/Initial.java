@@ -2,7 +2,9 @@ package ncu.sw.gameServer;
 
 import ncu.sw.gameUtility.GameObject;
 import ncu.sw.gameUtility.Obstacle;
-
+import ncu.sw.gameUtility.Coin;
+import ncu.sw.gameUtility.Item;
+import ncu.sw.gameUtility.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,23 +13,36 @@ import java.util.Random;
  * Created by nwlabclub on 2016/11/10.
  */
 public class Initial {
-    private int Total_Coin;
-    private int Total_Obstacle;
-    private int Total_Item;
-    private double MapX = 5000;
-    private double MapY = 3000;
 
-    public Initial(int total_Coin,int total_Obstacle,int total_Item) {
-        this.Total_Coin = total_Coin;
-        this.Total_Item = total_Item;
-        this.Total_Obstacle = total_Obstacle;
+    private int mapX = 5000;
+    private int mapY = 3000;
+    private int collisionTimes = 10;
+    private Random ran = new Random();
+    private List<GameObject> objList;
+    private List<Coin>  coinList;
+    private List<Item> itemList;
+    private List<Obstacle> obstacleList;
+    private List<Player> playList;
+    private int totalCoin;
+    private int totalObstacle;
+    private int totalItem;
+
+
+    public Initial(int totalCoin,int totalObstacle,int totalItem) {
+        this.totalCoin = totalCoin;
+        this.totalItem = totalItem;
+        this.totalObstacle = totalObstacle;
+        objList = new ArrayList<>();
+        coinList = new ArrayList<>();
+        itemList = new ArrayList<>();
+        obstacleList = new ArrayList<>();
+        playList = new ArrayList<>();
         this.randomMap();
-
     }
-    private boolean Collision(GameObject a, GameObject b) {
-        if(a.GetAttribute()==b.GetAttribute()) {
-            if(a.GetAttribute()== 0 ) { // circle
-                if(Distance(a.GetPositionX(),a.GetPositionY(),b.GetPositionX(),b.GetPositionY())>=a.GetWidth()+b.GetWidth()) {
+    private boolean isCollision(GameObject a, GameObject b) {
+        if(a.getAttribute()==b.getAttribute()) {
+            if(a.getAttribute()== 0 ) { // circle
+                if(calcDistance(a.getPositionX(),a.getPositionY(),b.getPositionX(),b.getPositionY())>=a.getWidth()+b.getWidth()) {
                     return false;
                 }
                 else {
@@ -35,7 +50,7 @@ public class Initial {
                 }
             }
             else {// x1-x2 絕對值 比w1/2+w2/2 大 則沒碰撞 // 兩個矩形
-                if((Math.abs(a.GetPositionX()-b.GetPositionX())>=(a.GetWidth()/2 + b.GetWidth()/2)) && (Math.abs(a.GetPositionY()-b.GetPositionY())>= (a.GetHight()/2 + b.GetHight()/2))) {
+                if((Math.abs(a.getPositionX()-b.getPositionX())>=(a.getWidth()/2 + b.getWidth()/2)) && (Math.abs(a.getPositionY()-b.getPositionY())>= (a.getHight()/2 + b.getHight()/2))) {
                     return  false;
                 }
                 else {
@@ -44,16 +59,16 @@ public class Initial {
             }
         }
         else {
-            if(a.GetAttribute() == 0) { //circle is a  rectangle is b
+            if(a.getAttribute() == 0) { //circle is a  rectangle is b
                 if(isSameQuadrant(a,b)) {
-                    if(FindClosetDistance(a,b)>=a.GetHight()) {
+                    if(findClosetCalcDistance(a,b)>=a.getHight()) {
                         return false;
                     }
                     else {
                         return  true;
                     }
                 }
-                else if(((Math.abs(a.GetPositionX()-b.GetPositionX())>=(a.GetWidth() + b.GetWidth()/2)) && (Math.abs(a.GetPositionY()-b.GetPositionY())>= (a.GetHight() + b.GetHight()/2)))){
+                else if(((Math.abs(a.getPositionX()-b.getPositionX())>=(a.getWidth() + b.getWidth()/2)) && (Math.abs(a.getPositionY()-b.getPositionY())>= (a.getHight() + b.getHight()/2)))){
                     return  false;
                 }
                 else {
@@ -62,14 +77,14 @@ public class Initial {
             }
             else { //circle is b rectangle is a
                 if(isSameQuadrant(b,a)) {
-                    if(FindClosetDistance(b,a)>=b.GetHight()) {
+                    if(findClosetCalcDistance(b,a)>=b.getHight()) {
                         return false;
                     }
                     else {
                         return  true;
                     }
                 }
-                else if(((Math.abs(b.GetPositionX()-a.GetPositionX())>=(b.GetWidth() + a.GetWidth()/2)) && (Math.abs(b.GetPositionY()-a.GetPositionY())>= (b.GetHight() + a.GetHight()/2)))){
+                else if(((Math.abs(b.getPositionX()-a.getPositionX())>=(b.getWidth() + a.getWidth()/2)) && (Math.abs(b.getPositionY()-a.getPositionY())>= (b.getHight() + a.getHight()/2)))){
                     return  false;
                 }
                 else {
@@ -79,39 +94,39 @@ public class Initial {
             }
         }
     }
-    private double FindClosetDistance(GameObject a, GameObject b) {
-        double buf = Distance(a.GetPositionX(),a.GetPositionY(),(b.GetPositionX() - b.GetWidth()/2),(b.GetPositionY() + b.GetHight()/2)); // left up
+    private double findClosetCalcDistance(GameObject a, GameObject b) {
+        double buf = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX() - b.getWidth()/2),(b.getPositionY() + b.getHight()/2)); // left up
         double distance = buf;
-        buf = Distance(a.GetPositionX(),a.GetPositionY(),(b.GetPositionX()+b.GetWidth()/2),(b.GetPositionY() + b.GetHight()/2)); //right up
+        buf = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()+b.getWidth()/2),(b.getPositionY() + b.getHight()/2)); //right up
         if(distance<buf) {
             distance = buf;
         }
-        buf = Distance(a.GetPositionX(),a.GetPositionY(),(b.GetPositionX()-b.GetWidth()/2),(b.GetPositionY() - b.GetHight()/2)); //lefu down
+        buf = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()-b.getWidth()/2),(b.getPositionY() - b.getHight()/2)); //lefu down
         if(distance<buf) {
             distance = buf;
         }
-        buf = Distance(a.GetPositionX(),a.GetPositionY(),(b.GetPositionX()-b.GetWidth()/2),(b.GetPositionY() - b.GetHight()/2)); //Right down
+        buf = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()-b.getWidth()/2),(b.getPositionY() - b.getHight()/2)); //Right down
         if(distance<buf) {
             distance = buf;
         }
         return  distance;
     }
     private boolean isSameQuadrant(GameObject a, GameObject b) {
-        double circleX = a.GetPositionX();
-        double circleY = a.GetPositionY();
-        double LeftX = b.GetPositionX() - b.GetWidth()/2 - circleX;
-        double LeftY = b.GetPositionY() + b.GetHight()/2 - circleY;
-        double RightX = b.GetPositionX() + b.GetWidth()/2 - circleX;
-        double RightY = b.GetPositionY() - b.GetHight()/2 - circleY;
+        int circleX = a.getPositionX();
+        int circleY = a.getPositionY();
+        int leftX = b.getPositionX() - b.getWidth()/2 - circleX;
+        int leftY = b.getPositionY() + b.getHight()/2 - circleY;
+        int rightX = b.getPositionX() + b.getWidth()/2 - circleX;
+        int rightY = b.getPositionY() - b.getHight()/2 - circleY;
 
-        if(LeftX>0 &&RightX>0) {
-            if((LeftY>0 && RightY>0)|| (LeftY<0 && RightY<0)){
+        if(leftX>0 &&rightX>0) {
+            if((leftY>0 && rightY>0)|| (leftY<0 && rightY<0)){
                 return  true;
             }
             return false;
         }
-        else if(LeftX<0&& RightX<0) {
-            if((LeftY>0 && RightY>0)|| (LeftY<0 && RightY<0)){
+        else if(leftX<0&& rightX<0) {
+            if((leftY>0 && rightY>0)|| (leftY<0 && rightY<0)){
                 return  true;
             }
             return  false;
@@ -121,17 +136,17 @@ public class Initial {
         }
 
     }
-    private double Distance(double x1,double y1,double x2,double y2 ) {
-        return Math.sqrt(Math.pow(x1-x2,2)+Math.pow(y1-y2,2));
+    private double calcDistance(double x1,double y1,double x2,double y2 ) {
+        return Math.sqrt( Math.pow(x1-x2,2)+Math.pow(y1-y2,2) );
     }
-    private double   RandomCoordinate(double  Start,double  End, Random aRandom) {
-        long range = (long)End - (long)Start + 1;
+    private int  randomCoordinate(int  start,int  end, Random aRandom) {
+        long range = (long)end - (long)start + 1;
         // compute a fraction of the range, 0 <= frac < range
         long fraction = (long)(range * aRandom.nextDouble());
-        double  randomNumber =  (double )(fraction + Start);
+        int  randomNumber =  (int )(fraction + start);
         return randomNumber;
     }
-    private int SetPoint(double input) {
+    private int setPoint(double input) {
         if(input<0.05) {
             return 50;
         }
@@ -156,82 +171,141 @@ public class Initial {
         return  1;
     }
     private void randomMap() {
-        Random ran = new Random();
-        List<GameObject> objList = new ArrayList<>();
-        int Counter = 0; // check collision 次數
-        int Collision_times = 20;
-        Obstacle create  = new Obstacle(0,0);
-        create.SetPosition(5,10);
-        create.SetHightandWidth(20,50);
-        double Obstacle_MapX = MapX-2*create.GetWidth();
-        double Obstacle_MapY = MapY-2*create.GetHight();
-        double  obstacle_frame = Math.sqrt((Obstacle_MapX *Obstacle_MapY )/Total_Obstacle);
-        double offsetX = create.GetPositionX();
-        double offsetY = create.GetPositionY();
-        for(double  i = obstacle_frame,j = obstacle_frame,count =0;count<Total_Obstacle;i+=obstacle_frame,count ++,Counter = 0) {
-            if(i>=Obstacle_MapX) {
-                i = obstacle_frame;
-                j += obstacle_frame;
-                if(j>=Obstacle_MapY) {
-                    j =(int) Obstacle_MapY;
-                }
-            }
-            double  x = RandomCoordinate(i-obstacle_frame,i,ran);
-            double  y = RandomCoordinate(j-obstacle_frame,j,ran);
-
-            Obstacle buf = new Obstacle (x+offsetX,y+offsetY);
-            for(int q = 0;q<objList.size();q++) {
-                if(Collision(objList.get(q),buf) ){
-                    x = RandomCoordinate(i-obstacle_frame,i,ran);
-                    y = RandomCoordinate(j-obstacle_frame,j,ran);
-                    buf.SetPosition(x+offsetX,y+offsetY);
-                    q = 0;
-                    Counter ++;
-                }
-                if(Counter>Collision_times) {
-                    break;
-                }
-            }
-            if(Counter<=Collision_times) {
-                objList.add(buf);
-            }
-        }
-        /*int coin_frame = (int)Math.sqrt((MapX * MapY)/Total_Coin);
-        for(int i = coin_frame,j = coin_frame,count =0;count<Total_Coin;count ++) {
-            if(i>=MapX) {
-                i= coin_frame;
-                j+=coin_frame;
-                if(j>=MapY) {
-                    j =(int) MapY;
-                }
-            }
-            double  x = RandomCoordinate(i-coin_frame,i,ran);
-            double  y = RandomCoordinate(j-coin_frame,j,ran);
-            Coin buf = new Coin (x,y);
-            buf.setPoint(SetPoint(ran.nextDouble()));
-            i+=coin_frame;
-            objList.add(buf);
-        }
-        int item_frame = (int)Math.sqrt((MapX * MapY)/Total_Item);
-        for(int i = item_frame,j = item_frame,count =0;count<Total_Item;count ++) {
-            if(i>=MapX) {
-                i= item_frame;
-                j+=item_frame;
-                if(j>=MapY) {
-                    j =(int) MapY;
-                }
-            }
-            double x = RandomCoordinate(i-item_frame,i,ran);
-            double  y = RandomCoordinate(j-item_frame,j,ran);
-            Item buf = new Item (x,y);
-            i+=item_frame;
-            objList.add(buf);
-        }*/
+        initialObstacle();
+        initialItem();
+        initialCoin();
         System.out.println(objList.size());
         for(int i=0;i<objList.size();i++) {
             GameObject a = objList.get(i);
-            System.out.println(a.GetPositionX() +" "+ a.GetPositionY());
+            System.out.println(i + " "+a.getPositionX() +" "+ a.getPositionY());
         }
+    }
+    private void initialObstacle() {
+        Obstacle buf  = new Obstacle(0,0);
+        int counter = 0;
+        int canDrawMapX = mapX-2*buf.getWidth();
+        int canDrawMapY = mapY-2*buf.getHight();
+        Double setFrame = Math.sqrt((canDrawMapX *canDrawMapY )/totalObstacle);
+        int Frame = setFrame.intValue();
+        int offsetX = buf.getWidth()/2;
+        int offsetY = buf.getHight()/2;
+        for(int  i = Frame,j = Frame,count =0;count<totalObstacle;i+=Frame,count ++,counter = 0) {
+            if(i>=canDrawMapX) {
+                i = Frame;
+                j += Frame;
+                if(j>=canDrawMapY) {
+                    j = canDrawMapY;
+                }
+            }
+            int  x = randomCoordinate(i-Frame,i,ran);
+            int  y = randomCoordinate(j-Frame,j,ran);
+
+            buf = new Obstacle (x+offsetX,y+offsetY);
+            for(int q = 0;q<objList.size();q++) {
+                if(isCollision(objList.get(q),buf) ){
+                    x = randomCoordinate(i-Frame,i,ran);
+                    y = randomCoordinate(j-Frame,j,ran);
+                    buf.setPosition(x+offsetX,y+offsetY);
+                    q = 0;
+                    counter ++;
+                }
+                if(counter>collisionTimes) {
+                    break;
+                }
+            }
+            if(counter<=collisionTimes) {
+                obstacleList.add(buf);
+                objList.add(buf);
+            }
+        }
+
+    }
+    private void initialItem() {
+        Item buf  = new Item(0,0);
+        int counter = 0;
+        int canDrawMapX = mapX-2*buf.getWidth();
+        int canDrawMapY = mapY-2*buf.getHight();
+        Double setFrame = Math.sqrt((canDrawMapX *canDrawMapY )/totalItem);
+        int Frame = setFrame.intValue();
+        int offsetX = buf.getWidth()/2;
+        int offsetY = buf.getHight()/2;
+        for(int  i = Frame,j = Frame,count =0;count<totalItem;i+=Frame,count ++,counter = 0) {
+            if(i>=canDrawMapX) {
+                i = Frame;
+                j += Frame;
+                if(j>=canDrawMapY) {
+                    j = canDrawMapY;
+                }
+            }
+            int  x = randomCoordinate(i-Frame,i,ran);
+            int  y = randomCoordinate(j-Frame,j,ran);
+
+            buf = new Item (x+offsetX,y+offsetY);
+            for(int q = 0;q<objList.size();q++) {
+                if(isCollision(objList.get(q),buf) ){
+                    x = randomCoordinate(i-Frame,i,ran);
+                    y = randomCoordinate(j-Frame,j,ran);
+                    buf.setPosition(x+offsetX,y+offsetY);
+                    q = 0;
+                    counter ++;
+                }
+                if(counter>collisionTimes) {
+                    break;
+                }
+            }
+            if(counter<=collisionTimes) {
+                itemList.add(buf);
+                objList.add(buf);
+            }
+        }
+    }
+    private void initialCoin() {
+        Coin buf  = new Coin(0,0);
+        int counter = 0;
+        int canDrawMapX = mapX-2*buf.getWidth();
+        int canDrawMapY = mapY-2*buf.getHight();
+        Double setFrame = Math.sqrt((canDrawMapX *canDrawMapY )/totalCoin);
+        int Frame = setFrame.intValue();
+        int offsetX = buf.getWidth()/2;
+        int offsetY = buf.getHight()/2;
+        for(int  i = Frame,j = Frame,count =0;count<totalCoin;i+=Frame,count ++,counter = 0) {
+            if(i>=canDrawMapX) {
+                i = Frame;
+                j += Frame;
+                if(j>=canDrawMapY) {
+                    j = canDrawMapY;
+                }
+            }
+            int  x = randomCoordinate(i-Frame,i,ran);
+            int  y = randomCoordinate(j-Frame,j,ran);
+
+            buf = new Coin (x+offsetX,y+offsetY);
+            for(int q = 0;q<objList.size();q++) {
+                if(isCollision(objList.get(q),buf) ){
+                    x = randomCoordinate(i-Frame,i,ran);
+                    y = randomCoordinate(j-Frame,j,ran);
+                    buf.setPosition(x+offsetX,y+offsetY);
+                    q = 0;
+                    counter ++;
+                }
+                if(counter>collisionTimes) {
+                    break;
+                }
+            }
+            if(counter<=collisionTimes) {
+                buf.setPoint(setPoint(ran.nextDouble()));
+                coinList.add(buf);
+                objList.add(buf);
+            }
+        }
+    }
+    private boolean isAllCollision(GameObject a) {
+        for(int i = 0; i<objList.size(); i++) {
+            if( isCollision( objList.get(i), a) ) {
+                return true;
+            }
+        }
+        return  false;
     }
 }
 

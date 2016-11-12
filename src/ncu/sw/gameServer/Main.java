@@ -5,7 +5,7 @@ public class Main {
         System.out.println("server main");
         //launch(args);
       // ServerGameController server = new ServerGameController(100,20,20);
-        Initial a = new Initial(10,100,10);
+        Initial a = new Initial(100,30,80);
         MultiServer server = new MultiServer(9000);
         new Thread(server).start();
     }

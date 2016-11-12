@@ -8,14 +8,9 @@ import javafx.scene.image.Image;
 public class Player extends GameObject{
 
     private String identity;
-    public Player(double x,double y,Image i,String id){
-        super(x,y,i);
+    public Player(int x,int y,String id){
+        super(x,y,20,20);
         identity = id;
-        this.SetAttribute(0);
-    }
-
-    @Override
-    public void collideResponse() {
-
+        setAttribute(0);
     }
 }
