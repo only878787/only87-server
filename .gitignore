@@ -1,5 +1,5 @@
 out/
-.DStore
-.DS_Store
-.iml
-.idea
+*.DStore
+*.DS_Store
+*.iml
+*.idea
