@@ -1,4 +1,4 @@
-package NTU.sw.gameUtility;
+package ncu.sw.gameUtility;
 
 import javafx.scene.image.Image;
 

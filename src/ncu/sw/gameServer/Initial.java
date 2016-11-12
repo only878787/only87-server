@@ -1,9 +1,7 @@
-package NTU.sw.gameGui;
+package ncu.sw.gameServer;
 
-import NTU.sw.gameUtility.Coin;
-import NTU.sw.gameUtility.GameObject;
-import NTU.sw.gameUtility.Item;
-import NTU.sw.gameUtility.Obstacle;
+import ncu.sw.gameUtility.GameObject;
+import ncu.sw.gameUtility.Obstacle;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,10 +1,8 @@
-package NTU.sw.gameGui;
+package ncu.sw.gameServer;
 
-import NTU.sw.gameUtility.*;
+import ncu.sw.gameUtility.GameObject;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Created by Arson on 2016/11/1.

@@ -1,6 +1,6 @@
-package NTU.sw.gameGui;
+package ncu.sw.gameServer;
 
-import NTU.sw.gameUtility.GameObject;
+import ncu.sw.gameUtility.GameObject;
 
 import java.util.List;
 
