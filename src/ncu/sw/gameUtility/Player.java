@@ -13,4 +13,7 @@ public class Player extends GameObject{
         identity = id;
         setAttribute(0);
     }
+    public String getId() {
+        return identity;
+    }
 }
