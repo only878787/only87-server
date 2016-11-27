@@ -27,7 +27,7 @@ public abstract class GameObject {
         this.positionX = X;
         this.positionY = Y;
     }
-    public void setHightandWidth(int height,int width) { //for test
+    public void setHeightandWidth(int height,int width) { //for test
         this.height = height;
         this.width = width;
     }
@@ -37,7 +37,7 @@ public abstract class GameObject {
     public int getPositionY() {
         return  this.positionY;
     }
-    public int getHight() {
+    public int getHeight() {
         return  height;
     }
     public int getWidth() {
