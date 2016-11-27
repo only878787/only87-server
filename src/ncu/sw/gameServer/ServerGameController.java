@@ -10,11 +10,7 @@ import java.util.Random;
  * Created by Arson on 2016/11/1.
  */
 public class ServerGameController {
-    private List<GameObject> objList;
-    private List<Coin>  coinList;
-    private List<Item> itemList;
-    private List<Obstacle> obstacleList;
-    private List<Player> playList;
+   
     private int totalCoin;
     private int totalItem;
     private int totalObstacle;
@@ -22,19 +18,30 @@ public class ServerGameController {
     private final int mapHeight= 3000;
     private final int collisionTimes = 10;
     private Random ran;
+    private ArrayList<Coin> coinArrayList;
+    private ArrayList<Item> itemArrayList;
+    private ArrayList<Obstacle> obstacleArrayList;
+    private ArrayList<Player> playerArrayList;
+    private ArrayList<GameObject>objList;
+    private Cmd cmd;
 
     public ServerGameController(int totalCoin, int totalItem, int totalObstacle) {
         this.totalCoin = totalCoin;
         this.totalItem = totalItem;
         this.totalObstacle = totalObstacle;
+        cmd = new Cmd();
         objList = new ArrayList<>();
-        coinList = new ArrayList<>();
-        itemList = new ArrayList<>();
-        obstacleList = new ArrayList<>();
-        playList = new ArrayList<>();
+        coinArrayList = new ArrayList<>();
+        itemArrayList = new ArrayList<>();
+        obstacleArrayList = new ArrayList<>();
+        playerArrayList = new ArrayList<>();
+        cmd.setCoinArrayList(coinArrayList);
+        cmd.setItemArrayList(itemArrayList);
+        cmd.setObstacleArrayList(obstacleArrayList);
+        cmd.setPlayerArrayList(playerArrayList);
         ran = new Random();
         gameInit();
-        playCreate("1232");
+        //playCreate("1232");
         show();
     }
     public void show() {
@@ -52,14 +59,14 @@ public class ServerGameController {
             Player player = new Player(0, 0, id);
             int[] position = this.randomPosition(player);
             player.setPosition(position[0],position[1]);
-            playList.add(player);
+            playerArrayList.add(player);
             objList.add(player);
             return  true;
         }
     }
     private boolean isSameId(String id) {
-        for(int i=0;i<playList.size();i++) {
-            Player player = playList.get(i);
+        for(int i=0;i<playerArrayList.size();i++) {
+            Player player = playerArrayList.get(i);
             if(id.equals(player.getId())) {
                 return true;
             }
@@ -216,8 +223,8 @@ public class ServerGameController {
 
         int canDrawMapWidth = mapWidth-2*buf.getWidth();
         int canDrawMapHeight = mapHeight-2*buf.getHeight();
-        Double setFrame = Math.sqrt((canDrawMapWidth *canDrawMapHeight )/totalObstacle);
-        int Frame = setFrame.intValue();
+        int Frame = (int)Math.sqrt((canDrawMapWidth *canDrawMapHeight )/totalObstacle);
+        //int Frame = setFrame.intValue();
         int offsetX = buf.getWidth()/2;
         int offsetY = buf.getHeight()/2;
         for(int  i = Frame,j = Frame,count =0;count<totalObstacle;i+=Frame,count ++) {
@@ -239,7 +246,7 @@ public class ServerGameController {
                     buf.setPosition(x+offsetX,y+offsetY);
                 }
                 else {
-                    obstacleList.add(buf);
+                    obstacleArrayList.add(buf);
                     objList.add(buf);
                     break;
                 }
@@ -274,7 +281,7 @@ public class ServerGameController {
                     buf.setPosition(x+offsetX,y+offsetY);
                 }
                 else {
-                    itemList.add(buf);
+                    itemArrayList.add(buf);
                     objList.add(buf);
                     break;
                 }
@@ -310,7 +317,7 @@ public class ServerGameController {
                     buf.setPosition(x + offsetX, y + offsetY);
                 } else {
                     buf.setPoint(setPoint(ran.nextDouble()));
-                    coinList.add(buf);
+                    coinArrayList.add(buf);
                     objList.add(buf);
                     break;
                 }
@@ -318,8 +325,23 @@ public class ServerGameController {
         }
     }
     private boolean isAllCollision(GameObject a) {
-        for(int i = 0; i<objList.size(); i++) {
-            if( isCollision( objList.get(i), a) ) {
+        for(int i = 0; i<coinArrayList.size();i++) {
+            if( isCollision( coinArrayList.get(i), a) ) {
+                return true;
+            }
+        }
+        for(int i = 0; i<itemArrayList.size();i++) {
+            if( isCollision( itemArrayList.get(i), a) ) {
+                return true;
+            }
+        }
+        for(int i = 0; i<obstacleArrayList.size();i++) {
+            if( isCollision( obstacleArrayList.get(i), a) ) {
+                return true;
+            }
+        }
+        for(int i = 0; i<playerArrayList.size();i++) {
+            if( isCollision( playerArrayList.get(i), a) ) {
                 return true;
             }
         }
