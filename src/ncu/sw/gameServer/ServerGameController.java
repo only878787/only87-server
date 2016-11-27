@@ -10,30 +10,38 @@ import java.util.Random;
  * Created by Arson on 2016/11/1.
  */
 public class ServerGameController {
-    private List<GameObject> objList;
-    private List<Coin>  coinList;
-    private List<Item> itemList;
-    private List<Obstacle> obstacleList;
-    private List<Player> playList;
+   
     private int totalCoin;
     private int totalItem;
     private int totalObstacle;
-    private int mapX = 5000;
-    private int mapY= 3000;
+    private final int mapWidth = 5000;
+    private final int mapHeight= 3000;
     private final int collisionTimes = 10;
-    private Random ran = new Random();
+    private Random ran;
+    private ArrayList<Coin> coinArrayList;
+    private ArrayList<Item> itemArrayList;
+    private ArrayList<Obstacle> obstacleArrayList;
+    private ArrayList<Player> playerArrayList;
+    private ArrayList<GameObject>objList;
+    private Cmd cmd;
 
     public ServerGameController(int totalCoin, int totalItem, int totalObstacle) {
         this.totalCoin = totalCoin;
         this.totalItem = totalItem;
         this.totalObstacle = totalObstacle;
+        cmd = new Cmd();
         objList = new ArrayList<>();
-        coinList = new ArrayList<>();
-        itemList = new ArrayList<>();
-        obstacleList = new ArrayList<>();
-        playList = new ArrayList<>();
+        coinArrayList = new ArrayList<>();
+        itemArrayList = new ArrayList<>();
+        obstacleArrayList = new ArrayList<>();
+        playerArrayList = new ArrayList<>();
+        cmd.setCoinArrayList(coinArrayList);
+        cmd.setItemArrayList(itemArrayList);
+        cmd.setObstacleArrayList(obstacleArrayList);
+        cmd.setPlayerArrayList(playerArrayList);
+        ran = new Random();
         gameInit();
-        playCreate("1232");
+        //playCreate("1232");
         show();
     }
     public void show() {
@@ -51,29 +59,29 @@ public class ServerGameController {
             Player player = new Player(0, 0, id);
             int[] position = this.randomPosition(player);
             player.setPosition(position[0],position[1]);
-            playList.add(player);
+            playerArrayList.add(player);
             objList.add(player);
             return  true;
         }
     }
     private boolean isSameId(String id) {
-        for(int i=0;i<playList.size();i++) {
-            Player player = playList.get(i);
+        for(int i=0;i<playerArrayList.size();i++) {
+            Player player = playerArrayList.get(i);
             if(id.equals(player.getId())) {
                 return true;
             }
         }
         return false;
     }
-    private int []randomPosition(GameObject object) {
-        int canDrawMapX = mapX-2*object.getWidth();
-        int canDrawMapY = mapY-2*object.getHight();
-        int  x = randomCoordinate(0,canDrawMapX,ran);
-        int  y = randomCoordinate(0,canDrawMapY,ran);
+    private int [] randomPosition(GameObject object) {
+        int canDrawMapWidth = mapWidth-2*object.getWidth();
+        int canDrawMapHeight = mapHeight-2*object.getHeight();
+        int  x = randomCoordinate(0,canDrawMapWidth,ran);
+        int  y = randomCoordinate(0,canDrawMapHeight,ran);
         object.setPosition(x,y);
         while(isAllCollision(object)) {
-            x = randomCoordinate(0,canDrawMapX,ran);
-            y = randomCoordinate(0,canDrawMapY,ran);
+            x = randomCoordinate(0,canDrawMapWidth,ran);
+            y = randomCoordinate(0,canDrawMapHeight,ran);
             object.setPosition(x,y);
         }
         int []position = new int[2];
@@ -95,7 +103,8 @@ public class ServerGameController {
                 }
             }
             else {// x1-x2 絕對值 比w1/2+w2/2 大 則沒碰撞 // 兩個矩形
-                if((Math.abs(a.getPositionX()-b.getPositionX())>=(a.getWidth()/2 + b.getWidth()/2)) && (Math.abs(a.getPositionY()-b.getPositionY())>= (a.getHight()/2 + b.getHight()/2))) {
+                if((Math.abs(a.getPositionX()-b.getPositionX())>=(a.getWidth()/2 + b.getWidth()/2)) &&
+                        (Math.abs(a.getPositionY()-b.getPositionY())>= (a.getHeight()/2 + b.getHeight()/2))) {
                     return  false;
                 }
                 else {
@@ -113,7 +122,7 @@ public class ServerGameController {
                 rectangleBuf = a;
             }
             if(isSameQuadrant(circleBuf,rectangleBuf)) {
-                if(findClosetCalcDistance(circleBuf,rectangleBuf)>=circleBuf.getHight()) {
+                if(findClosetCalcDistance(circleBuf,rectangleBuf)>=circleBuf.getHeight()) {
                     return false;
                 }
                 else {
@@ -123,7 +132,7 @@ public class ServerGameController {
             else if(((Math.abs(circleBuf.getPositionX()-rectangleBuf.getPositionX())
                     >=(circleBuf.getWidth() + rectangleBuf.getWidth()/2))
                     && (Math.abs(circleBuf.getPositionY()-rectangleBuf.getPositionY())
-                    >= (circleBuf.getHight() + rectangleBuf.getHight()/2)))){
+                    >= (circleBuf.getHeight() + rectangleBuf.getHeight()/2)))){
                 return  false;
             }
             else {
@@ -134,10 +143,10 @@ public class ServerGameController {
     private double findClosetCalcDistance(GameObject a, GameObject b) {
         double min = Double.POSITIVE_INFINITY;
         double [] buf = new double [4];
-        buf[0] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX() - b.getWidth()/2),(b.getPositionY() + b.getHight()/2)); // left up
-        buf[1] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()+b.getWidth()/2),(b.getPositionY() + b.getHight()/2)); //right up
-        buf[2] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()-b.getWidth()/2),(b.getPositionY() - b.getHight()/2)); //lefu down
-        buf[3] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()-b.getWidth()/2),(b.getPositionY() - b.getHight()/2)); //Right down
+        buf[0] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX() - b.getWidth()/2),(b.getPositionY() - b.getHeight()/2)); // left up
+        buf[1] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()+b.getWidth()/2),(b.getPositionY() - b.getHeight()/2)); //right up
+        buf[2] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()-b.getWidth()/2),(b.getPositionY() + b.getHeight()/2)); //left down
+        buf[3] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()-b.getWidth()/2),(b.getPositionY() + b.getHeight()/2)); //Right down
         for(int i=0;i<buf.length;i++) {
             if(buf[i]<min) {
                 min =buf[i];
@@ -149,9 +158,9 @@ public class ServerGameController {
         int circleX = a.getPositionX();
         int circleY = a.getPositionY();
         int leftX = b.getPositionX() - b.getWidth()/2 - circleX;
-        int leftY = b.getPositionY() + b.getHight()/2 - circleY;
+        int leftY = b.getPositionY() - b.getHeight()/2 - circleY;
         int rightX = b.getPositionX() + b.getWidth()/2 - circleX;
-        int rightY = b.getPositionY() - b.getHight()/2 - circleY;
+        int rightY = b.getPositionY() + b.getHeight()/2 - circleY;
 
         if(leftX>0 &&rightX>0) {
             if((leftY>0 && rightY>0)|| (leftY<0 && rightY<0)){
@@ -212,18 +221,18 @@ public class ServerGameController {
     private void initialObstacle() {
         Obstacle buf  = new Obstacle(0,0);
 
-        int canDrawMapX = mapX-2*buf.getWidth();
-        int canDrawMapY = mapY-2*buf.getHight();
-        Double setFrame = Math.sqrt((canDrawMapX *canDrawMapY )/totalObstacle);
-        int Frame = setFrame.intValue();
+        int canDrawMapWidth = mapWidth-2*buf.getWidth();
+        int canDrawMapHeight = mapHeight-2*buf.getHeight();
+        int Frame = (int)Math.sqrt((canDrawMapWidth *canDrawMapHeight )/totalObstacle);
+        //int Frame = setFrame.intValue();
         int offsetX = buf.getWidth()/2;
-        int offsetY = buf.getHight()/2;
+        int offsetY = buf.getHeight()/2;
         for(int  i = Frame,j = Frame,count =0;count<totalObstacle;i+=Frame,count ++) {
-            if(i>=canDrawMapX) {
+            if(i>=canDrawMapWidth) {
                 i = Frame;
                 j += Frame;
-                if(j>=canDrawMapY) {
-                    j = canDrawMapY;
+                if(j>=canDrawMapHeight) {
+                    j = canDrawMapHeight;
                 }
             }
             int  x = randomCoordinate(i-Frame,i,ran);
@@ -237,7 +246,7 @@ public class ServerGameController {
                     buf.setPosition(x+offsetX,y+offsetY);
                 }
                 else {
-                    obstacleList.add(buf);
+                    obstacleArrayList.add(buf);
                     objList.add(buf);
                     break;
                 }
@@ -247,18 +256,18 @@ public class ServerGameController {
     private void initialItem() {
         Item buf  = new Item(0,0);
 
-        int canDrawMapX = mapX-2*buf.getWidth();
-        int canDrawMapY = mapY-2*buf.getHight();
-        Double setFrame = Math.sqrt((canDrawMapX *canDrawMapY )/totalItem);
+        int canDrawMapWidth = mapWidth-2*buf.getWidth();
+        int canDrawMapHeight = mapHeight-2*buf.getHeight();
+        Double setFrame = Math.sqrt((canDrawMapWidth *canDrawMapHeight )/totalItem);
         int Frame = setFrame.intValue();
         int offsetX = buf.getWidth()/2;
-        int offsetY = buf.getHight()/2;
+        int offsetY = buf.getHeight()/2;
         for(int  i = Frame,j = Frame,count =0;count<totalItem;i+=Frame,count ++) {
-            if(i>=canDrawMapX) {
+            if(i>=canDrawMapWidth) {
                 i = Frame;
                 j += Frame;
-                if(j>=canDrawMapY) {
-                    j = canDrawMapY;
+                if(j>=canDrawMapHeight) {
+                    j = canDrawMapHeight;
                 }
             }
             int  x = randomCoordinate(i-Frame,i,ran);
@@ -272,7 +281,7 @@ public class ServerGameController {
                     buf.setPosition(x+offsetX,y+offsetY);
                 }
                 else {
-                    itemList.add(buf);
+                    itemArrayList.add(buf);
                     objList.add(buf);
                     break;
                 }
@@ -282,18 +291,18 @@ public class ServerGameController {
     private void initialCoin() {
         Coin buf  = new Coin(0,0);
 
-        int canDrawMapX = mapX-2*buf.getWidth();
-        int canDrawMapY = mapY-2*buf.getHight();
-        Double setFrame = Math.sqrt((canDrawMapX *canDrawMapY )/totalCoin);
+        int canDrawMapWidth = mapWidth-2*buf.getWidth();
+        int canDrawMapHeight = mapHeight-2*buf.getHeight();
+        Double setFrame = Math.sqrt((canDrawMapWidth *canDrawMapHeight )/totalCoin);
         int Frame = setFrame.intValue();
         int offsetX = buf.getWidth()/2;
-        int offsetY = buf.getHight()/2;
+        int offsetY = buf.getHeight()/2;
         for(int  i = Frame,j = Frame,count =0;count<totalCoin;i+=Frame,count ++) {
-            if (i >= canDrawMapX) {
+            if (i >= canDrawMapWidth) {
                 i = Frame;
                 j += Frame;
-                if (j >= canDrawMapY) {
-                    j = canDrawMapY;
+                if (j >= canDrawMapHeight) {
+                    j = canDrawMapHeight;
                 }
             }
             int x = randomCoordinate(i - Frame, i, ran);
@@ -308,7 +317,7 @@ public class ServerGameController {
                     buf.setPosition(x + offsetX, y + offsetY);
                 } else {
                     buf.setPoint(setPoint(ran.nextDouble()));
-                    coinList.add(buf);
+                    coinArrayList.add(buf);
                     objList.add(buf);
                     break;
                 }
@@ -316,8 +325,23 @@ public class ServerGameController {
         }
     }
     private boolean isAllCollision(GameObject a) {
-        for(int i = 0; i<objList.size(); i++) {
-            if( isCollision( objList.get(i), a) ) {
+        for(int i = 0; i<coinArrayList.size();i++) {
+            if( isCollision( coinArrayList.get(i), a) ) {
+                return true;
+            }
+        }
+        for(int i = 0; i<itemArrayList.size();i++) {
+            if( isCollision( itemArrayList.get(i), a) ) {
+                return true;
+            }
+        }
+        for(int i = 0; i<obstacleArrayList.size();i++) {
+            if( isCollision( obstacleArrayList.get(i), a) ) {
+                return true;
+            }
+        }
+        for(int i = 0; i<playerArrayList.size();i++) {
+            if( isCollision( playerArrayList.get(i), a) ) {
                 return true;
             }
         }
