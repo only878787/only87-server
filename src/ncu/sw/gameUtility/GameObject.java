@@ -1,54 +1,46 @@
 package ncu.sw.gameUtility;
 
-import javafx.scene.image.Image;
 
 
 /**
  * Created by Vincent on 10/10/2016.
  */
 public abstract class GameObject {
-    private double positionX;
-    private double positionY;
-    private Image image;
-    private double height;
-    private double width;
+    private int positionX;
+    private int positionY;
+    private int height;
+    private int width;
     private int attribute; // 加了一個attribute
-    public GameObject(double x,double y,Image i){
+    public GameObject(int x,int y,int h,int w) {
         positionX = x;
         positionY = y;
-        image = i;
-        height = image.getHeight();
-        width = image.getWidth();
+        height = h;
+        width = w;
     }
-    public GameObject(double x,double y) {
-        positionX = x;
-        positionY = y;
-    }
-    public void SetAttribute(int a) {
+    public void setAttribute(int a) {
         this.attribute = a;
     }
-    public int GetAttribute() {
+    public int getAttribute() {
         return this.attribute;
     }
-    public void SetPosition(double X,double Y) {
+    public void setPosition(int X,int Y) {
         this.positionX = X;
         this.positionY = Y;
     }
-    public void SetHightandWidth(double height,double width) { //for test
+    public void setHightandWidth(int height,int width) { //for test
         this.height = height;
         this.width = width;
     }
-    public double GetPositionX() {
+    public int getPositionX() {
         return  this.positionX;
     }
-    public double GetPositionY() {
+    public int getPositionY() {
         return  this.positionY;
     }
-    public double GetHight() {
+    public int getHight() {
         return  height;
     }
-    public double GetWidth() {
+    public int getWidth() {
         return  width;
     }
-    public abstract void collideResponse();
 }

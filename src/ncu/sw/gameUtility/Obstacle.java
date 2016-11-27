@@ -7,17 +7,8 @@ import javafx.scene.image.Image;
  */
 public class Obstacle extends GameObject{
 
-    public Obstacle(double x, double y, Image i){
-        super(x,y,i);
-        this.SetAttribute(1);
-    }
-
-    public Obstacle(double x,double y) {
-        super(x,y);
-        this.SetAttribute(1);
-    }
-    @Override
-    public void collideResponse() {
-
+    public Obstacle(int x,int y) {
+        super(x,y,20,20);
+        setAttribute(1);
     }
 }

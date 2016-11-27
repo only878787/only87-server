@@ -25,7 +25,6 @@ public class WorkerThread implements Runnable{
     }
     public void run(){
         try{
-
             /*BufferedReader inFromClient = new
                     BufferedReader(new InputStreamReader
                         (clientSocket.getInputStream()));*/

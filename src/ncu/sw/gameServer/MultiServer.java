@@ -27,7 +27,6 @@ public class MultiServer implements Runnable{
             throw new RuntimeException("Cannot open port 8787", e);
         }
     }
-
     public void run(){
         openWelcomeSocket();
         while(! isStopped()){
@@ -35,6 +34,7 @@ public class MultiServer implements Runnable{
             /* Accept connection */
             try {
                 clientSocket = this.welcomeSocket.accept();
+                //update player list
                 System.out.println("Addr : "+ clientSocket.getInetAddress()
                         + " Port : " + clientSocket.getPort() );
             } catch (IOException e) {
