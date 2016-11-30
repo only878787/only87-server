@@ -8,10 +8,17 @@ import javafx.scene.image.Image;
 public class Player extends GameObject{
 
     private String identity;
+    private int score;
     public Player(int x,int y,String id){
         super(x,y,20,20);
         identity = id;
         setAttribute(0);
+    }
+    public int getScore() {
+        return score;
+    }
+    public void setScore(int score) {
+        this.score = score;
     }
     public String getId() {
         return identity;
