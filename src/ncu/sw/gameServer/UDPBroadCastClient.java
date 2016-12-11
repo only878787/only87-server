@@ -3,39 +3,33 @@ package ncu.sw.gameServer;
 import ncu.sw.gameUtility.Cmd;
 
 import java.io.*;
+import java.util.Calendar;
+import java.util.Timer;
 
 
 public class UDPBroadCastClient {
-
     private UdpServerThread udpServerThread;
     private  Cmd cmd;
+    private Timer sendTimer;
+    private final int interval = 200;
     private static UDPBroadCastClient ourInstance = new UDPBroadCastClient();
     public static UDPBroadCastClient getInstance() {
         return ourInstance;
     }
     private  UDPBroadCastClient() {
-    }
-    private UDPBroadCastClient( Cmd cmd) {
-        this.cmd =cmd;
-        startUDPBroadcast();
-        System.out.println("Server gogo");
+        cmd = new Cmd();
+        sendTimer = new Timer();
     }
     public void startUDPBroadcast(){
         try {
             udpServerThread =  new UdpServerThread(this.cmd);
-            udpServerThread.start();
+            sendTimer.schedule(udpServerThread, Calendar.getInstance().getTime(),interval);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public Cmd getCmd() {
-        return this.cmd;
-    }
     public void setCmd(Cmd cmd) {
         this.cmd = cmd;
-    }
-    public synchronized void SetInterval(long time) {
-        udpServerThread.setInterval(time);
     }
 
 }

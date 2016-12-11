@@ -26,8 +26,6 @@ public class ServerGameController {
         this.totalObstacle = totalObstacle;
         cmd = new Cmd();
         bufcmd = new Cmd();
-
-
         ran = new Random();
         gameInit();
         //playCreate("1232");
