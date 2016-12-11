@@ -74,8 +74,8 @@ public class WorkerThread implements Runnable{
         Cmd c = new Cmd();
         c.getCoinArrayList().add( new Coin( 0, 0 ) );
         c.getCoinArrayList().add( new Coin( 1, 1 ) );
-        c.getPlayerArrayList().add( new Player( 2, 2, "Alice" ) );
-        c.getPlayerArrayList().add( new Player( 3, 3, "Bob" ) );
+        c.getPlayerArrayList().add( new Player( 2, 2, "Alice" ,"127.0.0.1") );
+        c.getPlayerArrayList().add( new Player( 3, 3, "Bob" ,"127.0.0.1") );
         return c;
     }
 }

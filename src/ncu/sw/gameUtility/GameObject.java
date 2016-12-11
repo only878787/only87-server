@@ -11,6 +11,7 @@ public abstract class GameObject {
     private int height;
     private int width;
     private int attribute; // 加了一個attribute
+    private int identity;
     public GameObject(int x,int y,int h,int w) {
         positionX = x;
         positionY = y;
