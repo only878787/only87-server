@@ -8,5 +8,8 @@ public class Main {
 
         TCPMultiServer server = new TCPMultiServer(9000);
         new Thread(server).start();
+
+        UDPBroadCastClient.getInstance().setCmd(gameController.getCmd());
+        UDPBroadCastClient.getInstance().startUDPBroadcast();
     }
 }

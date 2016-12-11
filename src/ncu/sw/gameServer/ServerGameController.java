@@ -33,6 +33,9 @@ public class ServerGameController {
         //playCreate("1232");
         show();
     }
+    public Cmd getCmd() {
+        return  this.cmd;
+    }
     public void show() {
         /*System.out.println(objList.size());
         for(int i=0;i<objList.size();i++) {
@@ -40,12 +43,12 @@ public class ServerGameController {
             System.out.println(i + " "+a.getPositionX() +" "+ a.getPositionY());
         }*/
     }
-    public boolean playCreate(String id) {
+    public boolean playCreate(String id, String address) {
         if(isSameId(id)) {
             return  false;
         }
         else {
-            Player player = new Player(0, 0, id);
+            Player player = new Player(0, 0, id, address);
             int[] position = this.randomPosition(player);
             player.setPosition(position[0],position[1]);
             cmd.getPlayerArrayList().add(player);
@@ -62,12 +65,12 @@ public class ServerGameController {
         return false;
     }
     private int [] randomPosition(GameObject object) {
-        int canDrawMapWidth = mapWidth-2*object.getWidth();
+        int canDrawMapWidth = mapWidth-2*object.getWidth(); // random 範圍
         int canDrawMapHeight = mapHeight-2*object.getHeight();
-        int  x = randomCoordinate(0,canDrawMapWidth,ran);
+        int  x = randomCoordinate(0,canDrawMapWidth,ran); // 0 ~ canDrawMapWidth random一個值
         int  y = randomCoordinate(0,canDrawMapHeight,ran);
         object.setPosition(x,y);
-        while(isAllOverlay(object)) {
+        while(isAllOverlay(object)) { //重複 直到不重複
             x = randomCoordinate(0,canDrawMapWidth,ran);
             y = randomCoordinate(0,canDrawMapHeight,ran);
             object.setPosition(x,y);
@@ -75,7 +78,7 @@ public class ServerGameController {
         int []position = new int[2];
         position[0] = x;
         position[1] = y;
-        return position;
+        return position; // 回傳其object的
     }
     private boolean isOverlay(GameObject a, GameObject b) {
         GameObject circleBuf;
@@ -314,14 +317,14 @@ public class ServerGameController {
     public  void playerMove(String id, int direction ) {
         //search id for this player
         int index = 0;
-        Player player = new Player(0,0,"FUCKYOU");
+        Player player = new Player(0,0,"FUCKYOU", "127.0.0.1"); // find the index of this player.
         for(; index<cmd.getPlayerArrayList().size(); index++) {
             player = cmd.getPlayerArrayList().get(index);
             if (id.equals(player.getId())) {
                 break;
             }
         }
-        switch(direction) {
+        switch(direction) { //若可以變動 則傳送更改過的cmd(bufcmd)
             case 0 :
                 player.setPosition(player.getPositionX() ,player.getPositionY() - 1); // 向↑
                 if(isCanMove(player)) {
