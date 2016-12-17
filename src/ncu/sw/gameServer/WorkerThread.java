@@ -9,73 +9,58 @@ import ncu.sw.gameUtility.Coin;
 import ncu.sw.gameUtility.Player;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class WorkerThread implements Runnable{
     private Socket clientSocket = null;
-    private String clientStr = "";
-    private ObjectOutputStream objOutToClient;
     private int id;
+    private String identity;
+    private boolean isStopped = false;
 
-    public WorkerThread( Socket clientSocket, int id ) {
+    public WorkerThread(Socket clientSocket, int id ) {
         this.clientSocket = clientSocket;
         this.id = id;
-        try{
-            objOutToClient = new ObjectOutputStream( clientSocket.getOutputStream() );
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-        // first connection is here.
     }
 
     public void run() {
+        String clientStr;
         try{
             DataInputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
-            Cmd t = createCmd();
-            sendCmdToClient( t );
-            while( true ){
+            while( !isStopped ){
                 clientStr = inFromClient.readUTF();
-                System.out.println( "FromClient "+id+" : " + clientStr );
-                cmd( clientStr );
-                if( clientStr.equals("bye") ){
-                    System.out.println( clientStr );
-                    break;
-                }
+                //System.out.println( clientStr );
+                stringParsing( clientStr );
             }
         }catch (IOException e){
-            e.printStackTrace();
+            System.out.println("one client has left...");
         }
     }
 
-    public void sendCmdToClient( Cmd c ) {
-        try{
-            objOutToClient.writeObject( c );
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-    }
-
-    public void cmd( String str ) {
+    public void stringParsing( String str ) { // TURN 5
         String[] token = str.split(" ");
-        /*if( token[0].equals("GET") ){
-            //System.out.println("call get func");
-            getTreasure( token[1] );
+        switch ( token[0] ){
+            case "TURN" :
+                //TCPMultiServer.fakeCDC.updateDirection(id,Integer.valueOf(token[1]));
+                ServerGameController.getInstance().playerMove(identity, Integer.parseInt(token[1]));
+                break;
+            case "GET" :
+                //TCPMultiServer.fakeCDC.getItem( id );
+
+                break;
+            case "IDENTITY" :
+                this.identity = token[1];
+                ServerGameController.getInstance().playCreate(identity, clientSocket.getInetAddress());
+
+                break;
+            case "DISCONNECT" :
+                // remove this player
+                isStopped = true;
+                break;
         }
-        else if(token[0].equals("RELEASE")){
-            //System.out.println("call get func");
-            releaseTreasure( token[1] );
-        }*/
     }
 
-    public Cmd createCmd() {
-        Cmd c = new Cmd();
-        c.getCoinArrayList().add( new Coin( 0, 0 ) );
-        c.getCoinArrayList().add( new Coin( 1, 1 ) );
-        c.getPlayerArrayList().add( new Player( 2, 2, "Alice" ,"127.0.0.1") );
-        c.getPlayerArrayList().add( new Player( 3, 3, "Bob" ,"127.0.0.1") );
-        return c;
-    }
 }

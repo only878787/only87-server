@@ -16,8 +16,8 @@ public class UdpServerThread extends TimerTask {
     public UdpServerThread(Cmd cmd) throws IOException {
         //socket = new DatagramSocket();
         this.cmd = cmd;
-        getClientIPTable();
-        System.out.println(cmd);
+       // getClientIPTable();
+      //  System.out.println(cmd);
     }
     public void getClientIPTable() {
         for(int i =0;i<cmd.getPlayerArrayList().size(); i++) {

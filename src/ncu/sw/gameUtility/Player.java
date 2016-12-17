@@ -1,6 +1,7 @@
 package ncu.sw.gameUtility;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 
 /**
@@ -10,14 +11,10 @@ public class Player extends GameObject{
     private String identity;
     private int score;
     private InetAddress address;
-    public Player(int x,int y,String id, String bufAddress){
+    public Player(int x,int y,String id, InetAddress bufAddress){
         super(x,y,20,20);
         identity = id;
-        try {
-            address = InetAddress.getByName(bufAddress);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        address = bufAddress;
         setAttribute(0);
     }
 

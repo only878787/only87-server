@@ -2,6 +2,9 @@ package ncu.sw.gameServer;
 
 import ncu.sw.gameUtility.*;
 
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -19,8 +22,22 @@ public class ServerGameController {
     private Random ran;
     private Cmd cmd;
     private Cmd bufcmd;
+    public final static int TURNEAST = 0;
+    public final static int TURNSOUTH = 1;
+    public final static int TURNNORTH = 2;
+    public final static int TURNWEST = 3;
+    public final static int GET = 4;
+    public final static int TURNEASTNORTH = 5;
+    public final static int TURNEASTSOUTH = 6;
+    public final static int TURNWESTNORTH = 7;
+    public final static int TURNWESTSOUTH = 8;
+    public final static int DISCONNECT = 9;
 
-    public ServerGameController(int totalCoin, int totalItem, int totalObstacle) {
+    private static ServerGameController ourInstance = new ServerGameController(100,20,20);
+    public static ServerGameController getInstance() {
+        return ourInstance;
+    }
+    private ServerGameController(int totalCoin, int totalItem, int totalObstacle) {
         this.totalCoin = totalCoin;
         this.totalItem = totalItem;
         this.totalObstacle = totalObstacle;
@@ -41,12 +58,13 @@ public class ServerGameController {
             System.out.println(i + " "+a.getPositionX() +" "+ a.getPositionY());
         }*/
     }
-    public boolean playCreate(String id, String address) {
+    public boolean playCreate(String id, InetAddress ipAddress) {
+        //String address = ipAddress.toString();
         if(isSameId(id)) {
             return  false;
         }
         else {
-            Player player = new Player(0, 0, id, address);
+            Player player = new Player(0, 0, id, ipAddress);
             int[] position = this.randomPosition(player);
             player.setPosition(position[0],position[1]);
             cmd.getPlayerArrayList().add(player);
@@ -315,7 +333,8 @@ public class ServerGameController {
     public  void playerMove(String id, int direction ) {
         //search id for this player
         int index = 0;
-        Player player = new Player(0,0,"FUCKYOU", "127.0.0.1"); // find the index of this player.
+        Player player = null;
+
         for(; index<cmd.getPlayerArrayList().size(); index++) {
             player = cmd.getPlayerArrayList().get(index);
             if (id.equals(player.getId())) {
@@ -323,7 +342,7 @@ public class ServerGameController {
             }
         }
         switch(direction) { //若可以變動 則傳送更改過的cmd(bufcmd)
-            case 0 :
+            case TURNNORTH :
                 player.setPosition(player.getPositionX() ,player.getPositionY() - 1); // 向↑
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
@@ -332,7 +351,7 @@ public class ServerGameController {
                     player.setPosition(player.getPositionX() , player.getPositionY() + 1);
                 }
                 break;
-            case 1 :
+            case TURNEASTNORTH :
                 player.setPosition(player.getPositionX() + 1,player.getPositionY() - 1); // 向↗
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
@@ -341,8 +360,8 @@ public class ServerGameController {
                     player.setPosition(player.getPositionX() - 1,player.getPositionY() + 1);
                 }
                 break;
-            case 2 :
-                player.setPosition(player.getPositionX() + 1,player.getPositionY()); // 向→
+            case TURNEAST :
+                player.setPosition(player.getPositionX() + 1,player.getPositionY()); // 向 →
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
                 }
@@ -350,7 +369,7 @@ public class ServerGameController {
                     player.setPosition(player.getPositionX() - 1,player.getPositionY());
                 }
                 break;
-            case 3 :
+            case TURNEASTSOUTH :
                 player.setPosition(player.getPositionX() + 1,player.getPositionY() + 1); // 向↘
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
@@ -359,7 +378,7 @@ public class ServerGameController {
                     player.setPosition(player.getPositionX() - 1,player.getPositionY() - 1);
                 }
                 break;
-            case 4 :
+            case TURNSOUTH :
                 player.setPosition(player.getPositionX() ,player.getPositionY() + 1); // 向↓
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
@@ -368,7 +387,7 @@ public class ServerGameController {
                     player.setPosition(player.getPositionX() - 1,player.getPositionY() - 1);
                 }
                 break;
-            case 5 :
+            case TURNWESTSOUTH :
                 player.setPosition(player.getPositionX() - 1,player.getPositionY() + 1); // 向↙
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
@@ -377,7 +396,7 @@ public class ServerGameController {
                     player.setPosition(player.getPositionX() + 1,player.getPositionY() - 1);
                 }
                 break;
-            case 6 :
+            case TURNWEST :
                 player.setPosition(player.getPositionX() - 1,player.getPositionY()); // 向←
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
@@ -386,7 +405,7 @@ public class ServerGameController {
                     player.setPosition(player.getPositionX() + 1,player.getPositionY());
                 }
                 break;
-            case 7:
+            case TURNWESTNORTH:
                 player.setPosition(player.getPositionX() - 1,player.getPositionY() - 1); // 向↖
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
@@ -396,7 +415,6 @@ public class ServerGameController {
                 }
         }
     }
-
     private void changePlayerStatus(Item item, Player player) {
 
     }
@@ -418,12 +436,12 @@ public class ServerGameController {
         ArrayList<Item> itemArrayList = cmd.getItemArrayList();
         ArrayList<Player> playerArrayList = cmd.getPlayerArrayList();
         for(int i = 0; i<obstacleArrayList.size();i++) {
-            if( isOverlay(obstacleArrayList.get(i), a) ) {
+            if( isOverlay(obstacleArrayList.get(i), a)) {
                 return false;
             }
         }
         for(int i = 0; i<playerArrayList.size();i++) {
-            if( isOverlay( playerArrayList.get(i), a) ) {
+            if( isOverlay( playerArrayList.get(i), a) &&( playerArrayList.get(i) != a )) {
                 return  false;
             }
         }
@@ -449,7 +467,6 @@ public class ServerGameController {
         ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();
         ArrayList<Item> itemArrayList = cmd.getItemArrayList();
         ArrayList<Player> playerArrayList = cmd.getPlayerArrayList();
-
         for(int i = 0; i<coinArrayList.size();i++) {
             if( isOverlay( coinArrayList.get(i), a) && ( coinArrayList.get(i) != a )) {
                 return true;
