@@ -8,6 +8,7 @@ import java.util.ArrayList;
  */
 public class Cmd implements java.io.Serializable {
 
+
     private ArrayList<Coin> coinArrayList;
     private ArrayList<Item> itemArrayList;
     private ArrayList<Obstacle> obstacleArrayList;
@@ -19,7 +20,7 @@ public class Cmd implements java.io.Serializable {
         obstacleArrayList = new ArrayList<Obstacle>();
         playerArrayList = new ArrayList<Player>();
     }
-
+    
     public ArrayList<Coin> getCoinArrayList() {
         return coinArrayList;
     }

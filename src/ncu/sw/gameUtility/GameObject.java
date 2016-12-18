@@ -6,6 +6,7 @@ package ncu.sw.gameUtility;
  * Created by Vincent on 10/10/2016.
  */
 public abstract class GameObject implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private int positionX;
     private int positionY;
     private int height;
