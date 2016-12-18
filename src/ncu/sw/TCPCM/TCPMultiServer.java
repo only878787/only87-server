@@ -1,4 +1,6 @@
-package ncu.sw.gameServer;
+package ncu.sw.TCPCM;
+
+import ncu.sw.TCPCM.WorkerThread;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +27,6 @@ public class TCPMultiServer implements Runnable{
         this.serverPort = portNum;
 
     }
-
     public void initTCPServer(){
         try {
             welcomeSocket = new ServerSocket(this.serverPort);

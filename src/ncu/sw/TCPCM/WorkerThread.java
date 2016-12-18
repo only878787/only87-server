@@ -1,9 +1,10 @@
-package ncu.sw.gameServer;
+package ncu.sw.TCPCM;
 
 /**
  * Created by NiHao on 2016/10/18.
  */
 
+import ncu.sw.gameServer.ServerGameController;
 import ncu.sw.gameUtility.Cmd;
 import ncu.sw.gameUtility.Coin;
 import ncu.sw.gameUtility.Player;
@@ -54,7 +55,6 @@ public class WorkerThread implements Runnable{
             case "IDENTITY" :
                 this.identity = token[1];
                 ServerGameController.getInstance().playCreate(identity, clientSocket.getInetAddress());
-
                 break;
             case "DISCONNECT" :
                 // remove this player
@@ -62,5 +62,4 @@ public class WorkerThread implements Runnable{
                 break;
         }
     }
-
 }

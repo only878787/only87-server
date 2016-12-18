@@ -1,4 +1,4 @@
-package ncu.sw.gameServer;
+package ncu.sw.UDPCM;
 
 import ncu.sw.gameUtility.Cmd;
 
@@ -16,7 +16,7 @@ public class UdpServerThread extends TimerTask {
     public UdpServerThread(Cmd cmd) throws IOException {
         //socket = new DatagramSocket();
         this.cmd = cmd;
-       // getClientIPTable();
+      //  getClientIPTable();
       //  System.out.println(cmd);
     }
     public void getClientIPTable() {
@@ -34,6 +34,7 @@ public class UdpServerThread extends TimerTask {
 
                 DatagramPacket  packet = new DatagramPacket(data,  //這邊在送
                         data.length,cmd.getPlayerArrayList().get(i).getAddress(),5000);
+                System.out.println(cmd.getPlayerArrayList().get(i).getAddress() +" " + cmd);
                 DatagramSocket  socket = new DatagramSocket();
                 socket.send(packet);
                 socket.close();

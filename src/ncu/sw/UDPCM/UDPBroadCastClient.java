@@ -1,4 +1,4 @@
-package ncu.sw.gameServer;
+package ncu.sw.UDPCM;
 
 import ncu.sw.gameUtility.Cmd;
 
@@ -31,5 +31,4 @@ public class UDPBroadCastClient {
     public void setCmd(Cmd cmd) {
         this.cmd = cmd;
     }
-
 }

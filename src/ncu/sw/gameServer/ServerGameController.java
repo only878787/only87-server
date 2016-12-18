@@ -7,6 +7,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.SynchronousQueue;
 
 /**
  * Created by Arson on 2016/11/1.
@@ -32,9 +33,12 @@ public class ServerGameController {
     public final static int TURNWESTNORTH = 7;
     public final static int TURNWESTSOUTH = 8;
     public final static int DISCONNECT = 9;
+    private static ServerGameController ourInstance ;
 
-    private static ServerGameController ourInstance = new ServerGameController(100,20,20);
     public static ServerGameController getInstance() {
+        if(ourInstance == null) {
+          ourInstance  = new ServerGameController(100,20,20);
+        }
         return ourInstance;
     }
     private ServerGameController(int totalCoin, int totalItem, int totalObstacle) {
@@ -60,6 +64,7 @@ public class ServerGameController {
     }
     public boolean playCreate(String id, InetAddress ipAddress) {
         //String address = ipAddress.toString();
+        System.out.println(id +" is here.");
         if(isSameId(id)) {
             return  false;
         }
