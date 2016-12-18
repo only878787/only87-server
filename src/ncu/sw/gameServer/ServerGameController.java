@@ -434,7 +434,14 @@ public class ServerGameController {
             a.setPosition(x,y);
         }
     }
-
+    public void removePlayer(InetAddress address) {
+        for (int i= 0; i<cmd.getPlayerArrayList().size(); i++) {
+            if(address.equals(cmd.getPlayerArrayList().get(i).getAddress())) {
+                cmd.getPlayerArrayList().remove(i);
+                break;
+            }
+        }
+    }
     private boolean isCanMove(Player a) {
         ArrayList<Coin> coinArrayList = cmd.getCoinArrayList();
         ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();

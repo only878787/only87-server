@@ -58,6 +58,7 @@ public class WorkerThread implements Runnable{
                 break;
             case "DISCONNECT" :
                 // remove this player
+                ServerGameController.getInstance().removePlayer(clientSocket.getInetAddress());
                 isStopped = true;
                 break;
         }

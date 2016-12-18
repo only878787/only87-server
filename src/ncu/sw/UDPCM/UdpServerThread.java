@@ -34,9 +34,10 @@ public class UdpServerThread extends TimerTask {
 
                 DatagramPacket  packet = new DatagramPacket(data,  //這邊在送
                         data.length,cmd.getPlayerArrayList().get(i).getAddress(),5000);
-                System.out.println(cmd.getPlayerArrayList().get(i).getAddress() +" " + cmd);
+                System.out.print(cmd.getPlayerArrayList().get(i).getAddress() +" " );
                 DatagramSocket  socket = new DatagramSocket();
                 socket.send(packet);
+                System.out.println("send!!!!");
                 socket.close();
             }
         } catch (SocketException e) {

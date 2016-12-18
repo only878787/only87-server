@@ -21,11 +21,10 @@ public class Main {
         server.initTCPServer();
         new Thread(server).start();
 
-        InetAddress address = InetAddress.getByName("127.0.0.1");
+        /*InetAddress address = InetAddress.getByName("127.0.0.1");
         Player player = new Player(20,20,"Kevin",address);
-        gameController.getCmd().getPlayerArrayList().add(player);
-
-        System.out.print(gameController.getCmd().getPlayerArrayList());
+        gameController.getCmd().getPlayerArrayList().add(player);*/
+        //System.out.print(gameController.getCmd().getPlayerArrayList());
         UDPBroadCastClient.getInstance().setCmd(gameController.getCmd());
         UDPBroadCastClient.getInstance().startUDPBroadcast();
     }
