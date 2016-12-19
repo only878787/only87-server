@@ -51,7 +51,6 @@ public class Cmd implements java.io.Serializable {
     public void setPlayerArrayList(ArrayList<Player> playerArrayList) {
         this.playerArrayList = playerArrayList;
     }
-
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         stream.writeObject(coinArrayList);
         stream.writeObject(itemArrayList);
@@ -70,5 +69,4 @@ public class Cmd implements java.io.Serializable {
                 + itemArrayList + ";   obstacleArrayList=" + obstacleArrayList
                 + ";   playerArrayList=" + playerArrayList;
     }
-
 }

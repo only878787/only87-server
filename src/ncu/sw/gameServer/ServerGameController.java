@@ -3,7 +3,6 @@ package ncu.sw.gameServer;
 import ncu.sw.gameUtility.*;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -16,57 +15,47 @@ public class ServerGameController {
     private int totalObstacle;
     private final int mapWidth = 5000;
     private final int mapHeight= 3000;
-    private final int collisionTimes = 10;
+    private final int overlayTimes = 10;
     private Random ran;
-    private ArrayList<Coin> coinArrayList;
-    private ArrayList<Item> itemArrayList;
-    private ArrayList<Obstacle> obstacleArrayList;
-    private ArrayList<Player> playerArrayList;
-    private ArrayList<GameObject>objList;
     private Cmd cmd;
+    private Cmd bufcmd;
 
     public ServerGameController(int totalCoin, int totalItem, int totalObstacle) {
         this.totalCoin = totalCoin;
         this.totalItem = totalItem;
         this.totalObstacle = totalObstacle;
         cmd = new Cmd();
-        objList = new ArrayList<>();
-        coinArrayList = new ArrayList<>();
-        itemArrayList = new ArrayList<>();
-        obstacleArrayList = new ArrayList<>();
-        playerArrayList = new ArrayList<>();
-        cmd.setCoinArrayList(coinArrayList);
-        cmd.setItemArrayList(itemArrayList);
-        cmd.setObstacleArrayList(obstacleArrayList);
-        cmd.setPlayerArrayList(playerArrayList);
+        bufcmd = new Cmd();
         ran = new Random();
         gameInit();
         //playCreate("1232");
         show();
     }
+    public Cmd getCmd() {
+        return  this.cmd;
+    }
     public void show() {
-        System.out.println(objList.size());
+        /*System.out.println(objList.size());
         for(int i=0;i<objList.size();i++) {
             GameObject a = objList.get(i);
             System.out.println(i + " "+a.getPositionX() +" "+ a.getPositionY());
-        }
+        }*/
     }
-    public boolean playCreate(String id) {
+    public boolean playCreate(String id, String address) {
         if(isSameId(id)) {
             return  false;
         }
         else {
-            Player player = new Player(0, 0, id);
+            Player player = new Player(0, 0, id, address);
             int[] position = this.randomPosition(player);
             player.setPosition(position[0],position[1]);
-            playerArrayList.add(player);
-            objList.add(player);
+            cmd.getPlayerArrayList().add(player);
             return  true;
         }
     }
     private boolean isSameId(String id) {
-        for(int i=0;i<playerArrayList.size();i++) {
-            Player player = playerArrayList.get(i);
+        for(int i=0;i<cmd.getPlayerArrayList().size();i++) {
+            Player player = cmd.getPlayerArrayList().get(i);
             if(id.equals(player.getId())) {
                 return true;
             }
@@ -74,12 +63,12 @@ public class ServerGameController {
         return false;
     }
     private int [] randomPosition(GameObject object) {
-        int canDrawMapWidth = mapWidth-2*object.getWidth();
+        int canDrawMapWidth = mapWidth-2*object.getWidth(); // random 範圍
         int canDrawMapHeight = mapHeight-2*object.getHeight();
-        int  x = randomCoordinate(0,canDrawMapWidth,ran);
+        int  x = randomCoordinate(0,canDrawMapWidth,ran); // 0 ~ canDrawMapWidth random一個值
         int  y = randomCoordinate(0,canDrawMapHeight,ran);
         object.setPosition(x,y);
-        while(isAllCollision(object)) {
+        while(isAllOverlay(object)) { //重複 直到不重複
             x = randomCoordinate(0,canDrawMapWidth,ran);
             y = randomCoordinate(0,canDrawMapHeight,ran);
             object.setPosition(x,y);
@@ -87,9 +76,9 @@ public class ServerGameController {
         int []position = new int[2];
         position[0] = x;
         position[1] = y;
-        return position;
+        return position; // 回傳其object的
     }
-    private boolean isCollision(GameObject a, GameObject b) {
+    private boolean isOverlay(GameObject a, GameObject b) {
         GameObject circleBuf;
         GameObject rectangleBuf;
         if( a.getAttribute() == b.getAttribute() ) { //they are the same shape.
@@ -140,13 +129,14 @@ public class ServerGameController {
             }
         }
     }
+
     private double findClosetCalcDistance(GameObject a, GameObject b) {
         double min = Double.POSITIVE_INFINITY;
         double [] buf = new double [4];
         buf[0] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX() - b.getWidth()/2),(b.getPositionY() - b.getHeight()/2)); // left up
         buf[1] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()+b.getWidth()/2),(b.getPositionY() - b.getHeight()/2)); //right up
         buf[2] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()-b.getWidth()/2),(b.getPositionY() + b.getHeight()/2)); //left down
-        buf[3] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()-b.getWidth()/2),(b.getPositionY() + b.getHeight()/2)); //Right down
+        buf[3] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()+b.getWidth()/2),(b.getPositionY() + b.getHeight()/2)); //Right down
         for(int i=0;i<buf.length;i++) {
             if(buf[i]<min) {
                 min =buf[i];
@@ -189,7 +179,7 @@ public class ServerGameController {
         int  randomNumber =  (int )(fraction + start);
         return randomNumber;
     }
-    private int setPoint(double input) {
+    private int setRandomPoint(double input) {
         if(input<0.05) {
             return 50;
         }
@@ -220,11 +210,11 @@ public class ServerGameController {
     }
     private void initialObstacle() {
         Obstacle buf  = new Obstacle(0,0);
-
+        ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();
         int canDrawMapWidth = mapWidth-2*buf.getWidth();
         int canDrawMapHeight = mapHeight-2*buf.getHeight();
         int Frame = (int)Math.sqrt((canDrawMapWidth *canDrawMapHeight )/totalObstacle);
-        //int Frame = setFrame.intValue();
+
         int offsetX = buf.getWidth()/2;
         int offsetY = buf.getHeight()/2;
         for(int  i = Frame,j = Frame,count =0;count<totalObstacle;i+=Frame,count ++) {
@@ -239,15 +229,14 @@ public class ServerGameController {
             int  y = randomCoordinate(j-Frame,j,ran);
 
             buf = new Obstacle (x+offsetX,y+offsetY);
-            for(int q=0;q<collisionTimes;q++) {
-                if(isAllCollision(buf)) {
+            for(int q = 0; q< overlayTimes; q++) {
+                if(isAllOverlay(buf)) {
                     x = randomCoordinate(i-Frame,i,ran);
                     y = randomCoordinate(j-Frame,j,ran);
                     buf.setPosition(x+offsetX,y+offsetY);
                 }
                 else {
                     obstacleArrayList.add(buf);
-                    objList.add(buf);
                     break;
                 }
             }
@@ -255,7 +244,7 @@ public class ServerGameController {
     }
     private void initialItem() {
         Item buf  = new Item(0,0);
-
+        ArrayList<Item> itemArrayList = cmd.getItemArrayList();
         int canDrawMapWidth = mapWidth-2*buf.getWidth();
         int canDrawMapHeight = mapHeight-2*buf.getHeight();
         Double setFrame = Math.sqrt((canDrawMapWidth *canDrawMapHeight )/totalItem);
@@ -274,15 +263,15 @@ public class ServerGameController {
             int  y = randomCoordinate(j-Frame,j,ran);
 
             buf = new Item (x+offsetX,y+offsetY);
-            for(int q=0;q<collisionTimes;q++) {
-                if(isAllCollision(buf)) {
+            for(int q = 0; q< overlayTimes; q++) {
+                if(isAllOverlay(buf)) {
                     x = randomCoordinate(i-Frame,i,ran);
                     y = randomCoordinate(j-Frame,j,ran);
                     buf.setPosition(x+offsetX,y+offsetY);
                 }
                 else {
                     itemArrayList.add(buf);
-                    objList.add(buf);
+
                     break;
                 }
             }
@@ -290,7 +279,7 @@ public class ServerGameController {
     }
     private void initialCoin() {
         Coin buf  = new Coin(0,0);
-
+        ArrayList<Coin> coinArrayList = cmd.getCoinArrayList();
         int canDrawMapWidth = mapWidth-2*buf.getWidth();
         int canDrawMapHeight = mapHeight-2*buf.getHeight();
         Double setFrame = Math.sqrt((canDrawMapWidth *canDrawMapHeight )/totalCoin);
@@ -310,38 +299,174 @@ public class ServerGameController {
 
             buf = new Coin(x + offsetX, y + offsetY);
 
-            for (int q = 0; q < collisionTimes; q++) {
-                if (isAllCollision(buf)) {
+            for (int q = 0; q < overlayTimes; q++) {
+                if (isAllOverlay(buf)) {
                     x = randomCoordinate(i - Frame, i, ran);
                     y = randomCoordinate(j - Frame, j, ran);
                     buf.setPosition(x + offsetX, y + offsetY);
                 } else {
-                    buf.setPoint(setPoint(ran.nextDouble()));
+                    buf.setPoint(setRandomPoint(ran.nextDouble()));
                     coinArrayList.add(buf);
-                    objList.add(buf);
                     break;
                 }
             }
         }
     }
-    private boolean isAllCollision(GameObject a) {
+    public  void playerMove(String id, int direction ) {
+        //search id for this player
+        int index = 0;
+        Player player = new Player(0,0,"FUCKYOU", "127.0.0.1"); // find the index of this player.
+        for(; index<cmd.getPlayerArrayList().size(); index++) {
+            player = cmd.getPlayerArrayList().get(index);
+            if (id.equals(player.getId())) {
+                break;
+            }
+        }
+        switch(direction) { //若可以變動 則傳送更改過的cmd(bufcmd)
+            case 0 :
+                player.setPosition(player.getPositionX() ,player.getPositionY() - 1); // 向↑
+                if(isCanMove(player)) {
+                    bufcmd.getPlayerArrayList().add(player);
+                }
+                else {
+                    player.setPosition(player.getPositionX() , player.getPositionY() + 1);
+                }
+                break;
+            case 1 :
+                player.setPosition(player.getPositionX() + 1,player.getPositionY() - 1); // 向↗
+                if(isCanMove(player)) {
+                    bufcmd.getPlayerArrayList().add(player);
+                }
+                else {
+                    player.setPosition(player.getPositionX() - 1,player.getPositionY() + 1);
+                }
+                break;
+            case 2 :
+                player.setPosition(player.getPositionX() + 1,player.getPositionY()); // 向→
+                if(isCanMove(player)) {
+                    bufcmd.getPlayerArrayList().add(player);
+                }
+                else {
+                    player.setPosition(player.getPositionX() - 1,player.getPositionY());
+                }
+                break;
+            case 3 :
+                player.setPosition(player.getPositionX() + 1,player.getPositionY() + 1); // 向↘
+                if(isCanMove(player)) {
+                    bufcmd.getPlayerArrayList().add(player);
+                }
+                else {
+                    player.setPosition(player.getPositionX() - 1,player.getPositionY() - 1);
+                }
+                break;
+            case 4 :
+                player.setPosition(player.getPositionX() ,player.getPositionY() + 1); // 向↓
+                if(isCanMove(player)) {
+                    bufcmd.getPlayerArrayList().add(player);
+                }
+                else {
+                    player.setPosition(player.getPositionX() - 1,player.getPositionY() - 1);
+                }
+                break;
+            case 5 :
+                player.setPosition(player.getPositionX() - 1,player.getPositionY() + 1); // 向↙
+                if(isCanMove(player)) {
+                    bufcmd.getPlayerArrayList().add(player);
+                }
+                else {
+                    player.setPosition(player.getPositionX() + 1,player.getPositionY() - 1);
+                }
+                break;
+            case 6 :
+                player.setPosition(player.getPositionX() - 1,player.getPositionY()); // 向←
+                if(isCanMove(player)) {
+                    bufcmd.getPlayerArrayList().add(player);
+                }
+                else {
+                    player.setPosition(player.getPositionX() + 1,player.getPositionY());
+                }
+                break;
+            case 7:
+                player.setPosition(player.getPositionX() - 1,player.getPositionY() - 1); // 向↖
+                if(isCanMove(player)) {
+                    bufcmd.getPlayerArrayList().add(player);
+                }
+                else {
+                    player.setPosition(player.getPositionX() + 1,player.getPositionY() + 1);
+                }
+        }
+    }
+
+    private void changePlayerStatus(Item item, Player player) {
+
+    }
+    private void reRandomObject(GameObject a) {
+
+        int x = randomCoordinate(0, mapWidth, ran);
+        int y = randomCoordinate(0, mapHeight, ran);
+        a.setPosition(x,y);
+        while(isAllOverlay(a)) { // 除了自己有沒有overlay
+            x = randomCoordinate(0, mapWidth, ran);
+            y = randomCoordinate(0, mapHeight, ran);
+            a.setPosition(x,y);
+        }
+    }
+
+    private boolean isCanMove(Player a) {
+        ArrayList<Coin> coinArrayList = cmd.getCoinArrayList();
+        ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();
+        ArrayList<Item> itemArrayList = cmd.getItemArrayList();
+        ArrayList<Player> playerArrayList = cmd.getPlayerArrayList();
+        for(int i = 0; i<obstacleArrayList.size();i++) {
+            if( isOverlay(obstacleArrayList.get(i), a) ) {
+                return false;
+            }
+        }
+        for(int i = 0; i<playerArrayList.size();i++) {
+            if( isOverlay( playerArrayList.get(i), a) ) {
+                return  false;
+            }
+        }
+        for(int i = 0; i<itemArrayList.size();i++) {
+            if( isOverlay( itemArrayList.get(i), a) ) {
+                changePlayerStatus(itemArrayList.get(i),a); // problem 1 如果碰到很多item 吃哪個??
+                reRandomObject(itemArrayList.get(i)); // 討論 item 個數 也跟分數一樣 random ???
+                bufcmd.getItemArrayList().add(itemArrayList.get(i));
+            }
+        }
         for(int i = 0; i<coinArrayList.size();i++) {
-            if( isCollision( coinArrayList.get(i), a) ) {
+            if( isOverlay( coinArrayList.get(i), a) ) {
+                a.setScore( a.getScore() + coinArrayList.get(i).getPoint() );
+                coinArrayList.get(i).setPoint( setRandomPoint( ran.nextDouble() ) );
+                reRandomObject( coinArrayList.get(i) );
+                bufcmd.getCoinArrayList().add(coinArrayList.get(i));
+            }
+        }
+        return  true;
+    }
+    private boolean isAllOverlay(GameObject a) {
+        ArrayList<Coin> coinArrayList = cmd.getCoinArrayList();
+        ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();
+        ArrayList<Item> itemArrayList = cmd.getItemArrayList();
+        ArrayList<Player> playerArrayList = cmd.getPlayerArrayList();
+
+        for(int i = 0; i<coinArrayList.size();i++) {
+            if( isOverlay( coinArrayList.get(i), a) && ( coinArrayList.get(i) != a )) {
                 return true;
             }
         }
         for(int i = 0; i<itemArrayList.size();i++) {
-            if( isCollision( itemArrayList.get(i), a) ) {
+            if( isOverlay( itemArrayList.get(i), a) && ( itemArrayList.get(i) != a )) {
                 return true;
             }
         }
         for(int i = 0; i<obstacleArrayList.size();i++) {
-            if( isCollision( obstacleArrayList.get(i), a) ) {
+            if( isOverlay( obstacleArrayList.get(i), a) && ( obstacleArrayList.get(i) != a ) ) {
                 return true;
             }
         }
         for(int i = 0; i<playerArrayList.size();i++) {
-            if( isCollision( playerArrayList.get(i), a) ) {
+            if( isOverlay( playerArrayList.get(i), a) && ( playerArrayList.get(i) != a )) {
                 return true;
             }
         }
