@@ -8,7 +8,7 @@ import java.util.ArrayList;
  */
 public class Cmd implements java.io.Serializable {
 
-
+    private static final long serialVersionUID = 1L;
     private ArrayList<Coin> coinArrayList;
     private ArrayList<Item> itemArrayList;
     private ArrayList<Obstacle> obstacleArrayList;

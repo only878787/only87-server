@@ -23,6 +23,7 @@ public class ServerGameController {
     private Random ran;
     private Cmd cmd;
     private Cmd bufcmd;
+    private final int speed =10;
     public final static int TURNEAST = 0;
     public final static int TURNSOUTH = 1;
     public final static int TURNNORTH = 2;
@@ -37,7 +38,7 @@ public class ServerGameController {
 
     public static ServerGameController getInstance() {
         if(ourInstance == null) {
-          ourInstance  = new ServerGameController(100,20,20);
+          ourInstance  = new ServerGameController(200,1,100);
         }
         return ourInstance;
     }
@@ -64,7 +65,7 @@ public class ServerGameController {
     }
     public boolean playCreate(String id, InetAddress ipAddress) {
         //String address = ipAddress.toString();
-        System.out.println(id +" is here.");
+        System.out.println(id +" is created.");
         if(isSameId(id)) {
             return  false;
         }
@@ -346,77 +347,86 @@ public class ServerGameController {
                 break;
             }
         }
+        System.out.print(player.getPositionX() + " " + player.getPositionY());
         switch(direction) { //若可以變動 則傳送更改過的cmd(bufcmd)
             case TURNNORTH :
-                player.setPosition(player.getPositionX() ,player.getPositionY() - 1); // 向↑
+                System.out.println("↑");
+                player.setPosition(player.getPositionX() ,player.getPositionY() - speed); // 向↑
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() , player.getPositionY() + 1);
+                    player.setPosition(player.getPositionX() , player.getPositionY() + speed);
                 }
                 break;
             case TURNEASTNORTH :
-                player.setPosition(player.getPositionX() + 1,player.getPositionY() - 1); // 向↗
+                System.out.println("↗");
+                player.setPosition(player.getPositionX() + speed,player.getPositionY() - speed); // 向↗
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() - 1,player.getPositionY() + 1);
+                    player.setPosition(player.getPositionX() - speed,player.getPositionY() + speed);
                 }
                 break;
             case TURNEAST :
-                player.setPosition(player.getPositionX() + 1,player.getPositionY()); // 向 →
+                System.out.println("→");
+                player.setPosition(player.getPositionX() + speed,player.getPositionY()); // 向 →
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() - 1,player.getPositionY());
+                    player.setPosition(player.getPositionX() - speed,player.getPositionY());
                 }
                 break;
             case TURNEASTSOUTH :
-                player.setPosition(player.getPositionX() + 1,player.getPositionY() + 1); // 向↘
+                System.out.println("↘");
+                player.setPosition(player.getPositionX() + speed,player.getPositionY() + speed); // 向↘
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() - 1,player.getPositionY() - 1);
+                    player.setPosition(player.getPositionX() - speed,player.getPositionY() - speed);
                 }
                 break;
             case TURNSOUTH :
-                player.setPosition(player.getPositionX() ,player.getPositionY() + 1); // 向↓
+                player.setPosition(player.getPositionX() ,player.getPositionY() + speed); // 向↓
+                System.out.println("↓");
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() - 1,player.getPositionY() - 1);
+                    player.setPosition(player.getPositionX() - speed,player.getPositionY() - speed);
                 }
                 break;
             case TURNWESTSOUTH :
-                player.setPosition(player.getPositionX() - 1,player.getPositionY() + 1); // 向↙
+                System.out.println("↙");
+                player.setPosition(player.getPositionX() - speed,player.getPositionY() + speed); // 向↙
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() + 1,player.getPositionY() - 1);
+                    player.setPosition(player.getPositionX() + speed,player.getPositionY() - speed);
                 }
                 break;
             case TURNWEST :
-                player.setPosition(player.getPositionX() - 1,player.getPositionY()); // 向←
+                System.out.println("←");
+                player.setPosition(player.getPositionX() - speed,player.getPositionY()); // 向←
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() + 1,player.getPositionY());
+                    player.setPosition(player.getPositionX() + speed,player.getPositionY());
                 }
                 break;
             case TURNWESTNORTH:
-                player.setPosition(player.getPositionX() - 1,player.getPositionY() - 1); // 向↖
+                System.out.println("↖");
+                player.setPosition(player.getPositionX() - speed,player.getPositionY() - speed); // 向↖
                 if(isCanMove(player)) {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() + 1,player.getPositionY() + 1);
+                    player.setPosition(player.getPositionX() + speed,player.getPositionY() + speed);
                 }
         }
     }
@@ -434,7 +444,15 @@ public class ServerGameController {
             a.setPosition(x,y);
         }
     }
-
+    public void removePlayer(InetAddress address) {
+        System.out.println("removePlayer is called.");
+        for (int i= 0; i<cmd.getPlayerArrayList().size(); i++) {
+            if(address.equals(cmd.getPlayerArrayList().get(i).getAddress())) {
+                cmd.getPlayerArrayList().remove(i);
+                break;
+            }
+        }
+    }
     private boolean isCanMove(Player a) {
         ArrayList<Coin> coinArrayList = cmd.getCoinArrayList();
         ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();
