@@ -1,5 +1,6 @@
-package ncu.sw.UDPCM;
+package ncu.sw.UDPSM;
 
+import ncu.sw.TCPSM.TCPMultiServer;
 import ncu.sw.gameUtility.Cmd;
 
 import java.io.*;
@@ -9,26 +10,31 @@ import java.util.Timer;
 
 public class UDPBroadCastClient {
     private UdpServerThread udpServerThread;
-    private  Cmd cmd;
+    private Cmd cmd;
     private Timer sendTimer;
+
     private final int interval = 200;
-    private static UDPBroadCastClient ourInstance = new UDPBroadCastClient();
+    private static UDPBroadCastClient ourInstance;
+
     public static UDPBroadCastClient getInstance() {
+        if(ourInstance == null) {
+            ourInstance = new UDPBroadCastClient();
+        }
         return ourInstance;
     }
-    private  UDPBroadCastClient() {
+
+    private UDPBroadCastClient() {
         cmd = new Cmd();
         sendTimer = new Timer();
     }
-    public void startUDPBroadcast(){
+
+    public void startUDPBroadcast() {
         try {
-            udpServerThread =  new UdpServerThread(this.cmd);
-            sendTimer.schedule(udpServerThread, Calendar.getInstance().getTime(),interval);
+            udpServerThread = new UdpServerThread(this.cmd);
+            sendTimer.schedule(udpServerThread, Calendar.getInstance().getTime(), interval);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public void setCmd(Cmd cmd) {
-        this.cmd = cmd;
-    }
+
 }
