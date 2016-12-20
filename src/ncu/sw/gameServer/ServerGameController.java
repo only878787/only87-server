@@ -347,7 +347,7 @@ public class ServerGameController {
                 break;
             }
         }
-        System.out.print(player.getPositionX() + " " + player.getPositionY());
+        System.out.println(player.getPositionX() + " " + player.getPositionY());
         switch(direction) { //若可以變動 則傳送更改過的cmd(bufcmd)
             case TURNNORTH :
                 System.out.println("↑");
@@ -429,6 +429,8 @@ public class ServerGameController {
                     player.setPosition(player.getPositionX() + speed,player.getPositionY() + speed);
                 }
         }
+        System.out.println(player.getPositionX() + " " + player.getPositionY());
+        System.out.println();
     }
     private void changePlayerStatus(Item item, Player player) {
 
