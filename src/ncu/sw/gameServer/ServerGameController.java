@@ -396,7 +396,7 @@ public class ServerGameController {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() - speed,player.getPositionY() - speed);
+                    player.setPosition(player.getPositionX() ,player.getPositionY() - speed);
                 }
                 break;
             case TURNWESTSOUTH :
