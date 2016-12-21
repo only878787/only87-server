@@ -38,7 +38,7 @@ public class ServerGameController {
 
     public static ServerGameController getInstance() {
         if(ourInstance == null) {
-          ourInstance  = new ServerGameController(200,1,100);
+          ourInstance  = new ServerGameController(200,100,100);
         }
         return ourInstance;
     }
@@ -126,7 +126,7 @@ public class ServerGameController {
             }
         }
         else {//circle is a.  rectangle is b.
-            if(b.getAttribute() == 0) {
+            if(a.getAttribute() == 0) {
                 circleBuf = a;
                 rectangleBuf = b;
             }
@@ -135,7 +135,7 @@ public class ServerGameController {
                 rectangleBuf = a;
             }
             if(isSameQuadrant(circleBuf,rectangleBuf)) {
-                if(findClosetCalcDistance(circleBuf,rectangleBuf)>=circleBuf.getHeight()) {
+                if(findClosetCalcDistance(circleBuf,rectangleBuf) >= circleBuf.getHeight()) {
                     return false;
                 }
                 else {
@@ -144,7 +144,7 @@ public class ServerGameController {
             }
             else if(((Math.abs(circleBuf.getPositionX()-rectangleBuf.getPositionX())
                     >=(circleBuf.getWidth() + rectangleBuf.getWidth()/2))
-                    && (Math.abs(circleBuf.getPositionY()-rectangleBuf.getPositionY())
+                    || (Math.abs(circleBuf.getPositionY()-rectangleBuf.getPositionY())
                     >= (circleBuf.getHeight() + rectangleBuf.getHeight()/2)))){
                 return  false;
             }
@@ -157,13 +157,17 @@ public class ServerGameController {
     private double findClosetCalcDistance(GameObject a, GameObject b) {
         double min = Double.POSITIVE_INFINITY;
         double [] buf = new double [4];
-        buf[0] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX() - b.getWidth()/2),(b.getPositionY() - b.getHeight()/2)); // left up
-        buf[1] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()+b.getWidth()/2),(b.getPositionY() - b.getHeight()/2)); //right up
-        buf[2] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()-b.getWidth()/2),(b.getPositionY() + b.getHeight()/2)); //left down
-        buf[3] = calcDistance(a.getPositionX(),a.getPositionY(),(b.getPositionX()+b.getWidth()/2),(b.getPositionY() + b.getHeight()/2)); //Right down
-        for(int i=0;i<buf.length;i++) {
-            if(buf[i]<min) {
-                min =buf[i];
+        buf[0] = calcDistance(a.getPositionX(), a.getPositionY(),
+                (b.getPositionX() - b.getWidth()/2), (b.getPositionY() - b.getHeight()/2)); // left up
+        buf[2] = calcDistance(a.getPositionX(), a.getPositionY(),
+                (b.getPositionX() - b.getWidth()/2), (b.getPositionY() + b.getHeight()/2)); //left down
+        buf[3] = calcDistance(a.getPositionX(), a.getPositionY(),
+                (b.getPositionX() + b.getWidth()/2), (b.getPositionY() + b.getHeight()/2)); //Right down
+        buf[1] = calcDistance(a.getPositionX(), a.getPositionY(),
+                (b.getPositionX() + b.getWidth()/2), (b.getPositionY() - b.getHeight()/2)); //right up
+        for(int i=0; i<buf.length; i++) {
+            if(buf[i] < min) {
+                min = buf[i];
             }
         }
         return  min;
@@ -176,14 +180,14 @@ public class ServerGameController {
         int rightX = b.getPositionX() + b.getWidth()/2 - circleX;
         int rightY = b.getPositionY() + b.getHeight()/2 - circleY;
 
-        if(leftX>0 &&rightX>0) {
-            if((leftY>0 && rightY>0)|| (leftY<0 && rightY<0)){
+        if( leftX>0 && rightX>0 ){
+            if( (leftY>0 && rightY>0) || (leftY<0 && rightY<0) ){
                 return  true;
             }
             return false;
         }
-        else if(leftX<0&& rightX<0) {
-            if((leftY>0 && rightY>0)|| (leftY<0 && rightY<0)){
+        else if( leftX<0 && rightX<0 ){
+            if(( leftY>0 && rightY>0) || (leftY<0 && rightY<0) ){
                 return  true;
             }
             return  false;
@@ -396,7 +400,7 @@ public class ServerGameController {
                     bufcmd.getPlayerArrayList().add(player);
                 }
                 else {
-                    player.setPosition(player.getPositionX() - speed,player.getPositionY() - speed);
+                    player.setPosition(player.getPositionX() ,player.getPositionY() - speed);
                 }
                 break;
             case TURNWESTSOUTH :
@@ -458,13 +462,17 @@ public class ServerGameController {
         ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();
         ArrayList<Item> itemArrayList = cmd.getItemArrayList();
         ArrayList<Player> playerArrayList = cmd.getPlayerArrayList();
+        //if (true) return true;
         for(int i = 0; i<obstacleArrayList.size();i++) {
             if( isOverlay(obstacleArrayList.get(i), a)) {
+                System.out.println("Obstacle " +
+                        obstacleArrayList.get(i).getPositionX() + " " + obstacleArrayList.get(i).getPositionY());
                 return false;
             }
         }
         for(int i = 0; i<playerArrayList.size();i++) {
             if( isOverlay( playerArrayList.get(i), a) &&( playerArrayList.get(i) != a )) {
+                System.out.println("Player");
                 return  false;
             }
         }
