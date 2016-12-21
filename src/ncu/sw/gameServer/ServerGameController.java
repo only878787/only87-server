@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.SynchronousQueue;
 
@@ -22,8 +23,8 @@ public class ServerGameController {
     private final int overlayTimes = 10;
     private Random ran;
     private Cmd cmd;
-    private Cmd bufcmd;
-    private final int speed =10;
+
+    private final int speed =20;
     public final static int TURNEAST = 0;
     public final static int TURNSOUTH = 1;
     public final static int TURNNORTH = 2;
@@ -36,9 +37,11 @@ public class ServerGameController {
     public final static int DISCONNECT = 9;
     private static ServerGameController ourInstance ;
 
+    private HashMap<Integer, Integer> moveXMap,moveYMap;
+
     public static ServerGameController getInstance() {
         if(ourInstance == null) {
-          ourInstance  = new ServerGameController(200,1,100);
+          ourInstance  = new ServerGameController(200,1,10);
         }
         return ourInstance;
     }
@@ -47,21 +50,13 @@ public class ServerGameController {
         this.totalItem = totalItem;
         this.totalObstacle = totalObstacle;
         cmd = new Cmd();
-        bufcmd = new Cmd();
+
         ran = new Random();
         gameInit();
-        //playCreate("1232");
-        show();
+
     }
     public Cmd getCmd() {
         return  this.cmd;
-    }
-    public void show() {
-        /*System.out.println(objList.size());
-        for(int i=0;i<objList.size();i++) {
-            GameObject a = objList.get(i);
-            System.out.println(i + " "+a.getPositionX() +" "+ a.getPositionY());
-        }*/
     }
     public boolean playCreate(String id, InetAddress ipAddress) {
         //String address = ipAddress.toString();
@@ -112,6 +107,7 @@ public class ServerGameController {
                     return false;
                 }
                 else {
+                    System.out.println(" circle same shape overlay");
                     return true;
                 }
             }
@@ -121,12 +117,13 @@ public class ServerGameController {
                     return  false;
                 }
                 else {
+                    System.out.println("rectangle same shape overlay");
                     return true;
                 }
             }
         }
         else {//circle is a.  rectangle is b.
-            if(b.getAttribute() == 0) {
+            if(a.getAttribute() == 0) {
                 circleBuf = a;
                 rectangleBuf = b;
             }
@@ -137,18 +134,21 @@ public class ServerGameController {
             if(isSameQuadrant(circleBuf,rectangleBuf)) {
                 if(findClosetCalcDistance(circleBuf,rectangleBuf)>=circleBuf.getHeight()) {
                     return false;
+
                 }
                 else {
+                    System.out.println("findCloseDistance and not same shape overlay");
                     return  true;
                 }
             }
             else if(((Math.abs(circleBuf.getPositionX()-rectangleBuf.getPositionX())
                     >=(circleBuf.getWidth() + rectangleBuf.getWidth()/2))
-                    && (Math.abs(circleBuf.getPositionY()-rectangleBuf.getPositionY())
+                    || (Math.abs(circleBuf.getPositionY()-rectangleBuf.getPositionY())
                     >= (circleBuf.getHeight() + rectangleBuf.getHeight()/2)))){
                 return  false;
             }
             else {
+                System.out.println("not same shape overlay");
                 return true;
             }
         }
@@ -231,6 +231,7 @@ public class ServerGameController {
         initialObstacle();
         initialItem();
         initialCoin();
+        initXYMAP();
     }
     private void initialObstacle() {
         Obstacle buf  = new Obstacle(0,0);
@@ -265,6 +266,7 @@ public class ServerGameController {
                 }
             }
         }
+        System.out.print("obstacle size" +obstacleArrayList.size());
     }
     private void initialItem() {
         Item buf  = new Item(0,0);
@@ -301,6 +303,35 @@ public class ServerGameController {
             }
         }
     }
+    private  void initXYMAP(){
+
+        moveXMap = new HashMap<Integer, Integer>();
+        moveYMap = new HashMap<Integer, Integer>();
+
+        moveXMap.put( TURNEAST, 1 );
+        moveYMap.put( TURNEAST, 0 );
+
+        moveXMap.put( TURNSOUTH, 0 );
+        moveYMap.put( TURNSOUTH, 1 );
+
+        moveXMap.put( TURNNORTH, 0 );
+        moveYMap.put( TURNNORTH, -1 );
+
+        moveXMap.put( TURNWEST, -1 );
+        moveYMap.put( TURNWEST, 0 );
+
+        moveXMap.put( TURNEASTNORTH, 1 );
+        moveYMap.put( TURNEASTNORTH, -1 );
+
+        moveXMap.put( TURNEASTSOUTH, 1);
+        moveYMap.put( TURNEASTSOUTH, 1);
+
+        moveXMap.put( TURNWESTNORTH, -1);
+        moveYMap.put( TURNWESTNORTH, -1);
+
+        moveXMap.put( TURNWESTSOUTH, -1);
+        moveYMap.put( TURNWESTSOUTH, 1);
+    }
     private void initialCoin() {
         Coin buf  = new Coin(0,0);
         ArrayList<Coin> coinArrayList = cmd.getCoinArrayList();
@@ -336,107 +367,33 @@ public class ServerGameController {
             }
         }
     }
-    public  void playerMove(String id, int direction ) {
-        //search id for this player
-        int index = 0;
-        Player player = null;
+   public  void playerMove(String id, int direction ) {
+       //search id for this player
+       Player player = null;
+       for(int index = 0; index<cmd.getPlayerArrayList().size(); index++) {
+           player = cmd.getPlayerArrayList().get(index);
+           if (id.equals(player.getId())) {
+               break;
+           }
+       }
+       int dirX = moveXMap.get( direction );
+       int dirY = moveYMap.get( direction );
+       System.out.println("X " + dirX + "Y " +dirY);
+           player.setPosition(player.getPositionX() + speed * dirX ,
+                   player.getPositionY() + speed * dirY );
+           if(isCanMove(player)) {
+             // YAYA
+           }
+           else {
+               player.setPosition(player.getPositionX() - speed * dirX ,
+                       player.getPositionY() - speed * dirY );
+           }
 
-        for(; index<cmd.getPlayerArrayList().size(); index++) {
-            player = cmd.getPlayerArrayList().get(index);
-            if (id.equals(player.getId())) {
-                break;
-            }
-        }
-        System.out.println(player.getPositionX() + " " + player.getPositionY());
-        switch(direction) { //若可以變動 則傳送更改過的cmd(bufcmd)
-            case TURNNORTH :
-                System.out.println("↑");
-                player.setPosition(player.getPositionX() ,player.getPositionY() - speed); // 向↑
-                if(isCanMove(player)) {
-                    bufcmd.getPlayerArrayList().add(player);
-                }
-                else {
-                    player.setPosition(player.getPositionX() , player.getPositionY() + speed);
-                }
-                break;
-            case TURNEASTNORTH :
-                System.out.println("↗");
-                player.setPosition(player.getPositionX() + speed,player.getPositionY() - speed); // 向↗
-                if(isCanMove(player)) {
-                    bufcmd.getPlayerArrayList().add(player);
-                }
-                else {
-                    player.setPosition(player.getPositionX() - speed,player.getPositionY() + speed);
-                }
-                break;
-            case TURNEAST :
-                System.out.println("→");
-                player.setPosition(player.getPositionX() + speed,player.getPositionY()); // 向 →
-                if(isCanMove(player)) {
-                    bufcmd.getPlayerArrayList().add(player);
-                }
-                else {
-                    player.setPosition(player.getPositionX() - speed,player.getPositionY());
-                }
-                break;
-            case TURNEASTSOUTH :
-                System.out.println("↘");
-                player.setPosition(player.getPositionX() + speed,player.getPositionY() + speed); // 向↘
-                if(isCanMove(player)) {
-                    bufcmd.getPlayerArrayList().add(player);
-                }
-                else {
-                    player.setPosition(player.getPositionX() - speed,player.getPositionY() - speed);
-                }
-                break;
-            case TURNSOUTH :
-                player.setPosition(player.getPositionX() ,player.getPositionY() + speed); // 向↓
-                System.out.println("↓");
-                if(isCanMove(player)) {
-                    bufcmd.getPlayerArrayList().add(player);
-                }
-                else {
-                    player.setPosition(player.getPositionX() - speed,player.getPositionY() - speed);
-                }
-                break;
-            case TURNWESTSOUTH :
-                System.out.println("↙");
-                player.setPosition(player.getPositionX() - speed,player.getPositionY() + speed); // 向↙
-                if(isCanMove(player)) {
-                    bufcmd.getPlayerArrayList().add(player);
-                }
-                else {
-                    player.setPosition(player.getPositionX() + speed,player.getPositionY() - speed);
-                }
-                break;
-            case TURNWEST :
-                System.out.println("←");
-                player.setPosition(player.getPositionX() - speed,player.getPositionY()); // 向←
-                if(isCanMove(player)) {
-                    bufcmd.getPlayerArrayList().add(player);
-                }
-                else {
-                    player.setPosition(player.getPositionX() + speed,player.getPositionY());
-                }
-                break;
-            case TURNWESTNORTH:
-                System.out.println("↖");
-                player.setPosition(player.getPositionX() - speed,player.getPositionY() - speed); // 向↖
-                if(isCanMove(player)) {
-                    bufcmd.getPlayerArrayList().add(player);
-                }
-                else {
-                    player.setPosition(player.getPositionX() + speed,player.getPositionY() + speed);
-                }
-        }
-        System.out.println(player.getPositionX() + " " + player.getPositionY());
-        System.out.println();
-    }
+   }
     private void changePlayerStatus(Item item, Player player) {
 
     }
     private void reRandomObject(GameObject a) {
-
         int x = randomCoordinate(0, mapWidth, ran);
         int y = randomCoordinate(0, mapHeight, ran);
         a.setPosition(x,y);
@@ -447,9 +404,9 @@ public class ServerGameController {
         }
     }
     public void removePlayer(InetAddress address) {
-        System.out.println("removePlayer is called.");
         for (int i= 0; i<cmd.getPlayerArrayList().size(); i++) {
             if(address.equals(cmd.getPlayerArrayList().get(i).getAddress())) {
+              //  System.out.println(cmd.getPlayerArrayList().get(i).getAddress() + "removePlayer is called.");
                 cmd.getPlayerArrayList().remove(i);
                 break;
             }
@@ -462,6 +419,10 @@ public class ServerGameController {
         ArrayList<Player> playerArrayList = cmd.getPlayerArrayList();
         for(int i = 0; i<obstacleArrayList.size();i++) {
             if( isOverlay(obstacleArrayList.get(i), a)) {
+               // System.out.println("X "+ obstacleArrayList.get(i).getPositionX()+ " Y " + obstacleArrayList.get(i).getPositionY());
+                //System.out.println("playX " + a.getPositionX() + "playY " +a.getPositionY());
+                //show(obstacleArrayList);
+                System.out.print("There has Obstacle. if u could not see it, that is your problem, not mine\n");
                 return false;
             }
         }
@@ -474,18 +435,28 @@ public class ServerGameController {
             if( isOverlay( itemArrayList.get(i), a) ) {
                 changePlayerStatus(itemArrayList.get(i),a); // problem 1 如果碰到很多item 吃哪個??
                 reRandomObject(itemArrayList.get(i)); // 討論 item 個數 也跟分數一樣 random ???
-                bufcmd.getItemArrayList().add(itemArrayList.get(i));
+                //bufcmd.getItemArrayList().add(itemArrayList.get(i));
+
             }
         }
         for(int i = 0; i<coinArrayList.size();i++) {
             if( isOverlay( coinArrayList.get(i), a) ) {
                 a.setScore( a.getScore() + coinArrayList.get(i).getPoint() );
+                isEightySeven(a);
                 coinArrayList.get(i).setPoint( setRandomPoint( ran.nextDouble() ) );
                 reRandomObject( coinArrayList.get(i) );
-                bufcmd.getCoinArrayList().add(coinArrayList.get(i));
+                //bufcmd.getCoinArrayList().add(coinArrayList.get(i));
             }
         }
         return  true;
+    }
+    public void isEightySeven(Player player) {
+        if(player.getScore()==87) {
+            // Upgrade
+        }
+        else if (player.getScore()>87) {
+            player.setScore(0);
+        }
     }
     private boolean isAllOverlay(GameObject a) {
         ArrayList<Coin> coinArrayList = cmd.getCoinArrayList();

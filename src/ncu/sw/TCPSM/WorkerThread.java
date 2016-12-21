@@ -39,7 +39,7 @@ public class WorkerThread implements Runnable{
     }
     public void removeWorkerFromClientTable() {
         TCPMultiServer.getInstance().getClientTable().remove(
-                new InetSocketAddress(clientSocket.getInetAddress(),clientSocket.getLocalPort())
+                new InetSocketAddress(clientSocket.getInetAddress(),clientSocket.getPort())
         );
         ServerGameController.getInstance().removePlayer(clientSocket.getInetAddress());
     }
