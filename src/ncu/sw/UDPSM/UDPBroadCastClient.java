@@ -13,7 +13,7 @@ public class UDPBroadCastClient {
     private Cmd cmd;
     private Timer sendTimer;
 
-    private final int interval = 200;
+    private final int interval = 50;
     private static UDPBroadCastClient ourInstance;
 
     public static UDPBroadCastClient getInstance() {

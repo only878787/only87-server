@@ -412,13 +412,24 @@ public class ServerGameController {
             }
         }
     }
-    private boolean boundary(Player player) {
+    /*private boolean boundary(Player player) {
         int playerMapWidth = mapWidth-player.getWidth();
         int playerMapHeight = mapHeight-player.getHeight();
         if(player.getPositionX() >playerMapWidth || player.getPositionX()<player.getWidth()) {
             return  true;
         }
         else if (player.getPositionY() > playerMapHeight || player.getPositionY()<player.getHeight()) {
+            return  true;
+        }
+        return  false;
+    }*/
+    private boolean boundary (GameObject object) {
+        int playerMapWidth = mapWidth-object.getWidth();
+        int playerMapHeight = mapHeight-object.getHeight();
+        if(object.getPositionX() >playerMapWidth || object.getPositionX()<object.getWidth()) {
+            return  true;
+        }
+        else if (object.getPositionY() > playerMapHeight || object.getPositionY()<object.getHeight()) {
             return  true;
         }
         return  false;
@@ -499,7 +510,7 @@ public class ServerGameController {
                 return true;
             }
         }
-        return  false;
+        return  boundary(a);
     }
 }
 
