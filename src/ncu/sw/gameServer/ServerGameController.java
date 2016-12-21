@@ -24,7 +24,7 @@ public class ServerGameController {
     private Random ran;
     private Cmd cmd;
 
-    private final int speed =20;
+
     public final static int TURNEAST = 0;
     public final static int TURNSOUTH = 1;
     public final static int TURNNORTH = 2;
@@ -378,15 +378,15 @@ public class ServerGameController {
        }
        int dirX = moveXMap.get( direction );
        int dirY = moveYMap.get( direction );
-       System.out.println("X " + dirX + "Y " +dirY);
-           player.setPosition(player.getPositionX() + speed * dirX ,
-                   player.getPositionY() + speed * dirY );
+       System.out.println("X " + player.getPositionX() + "Y " +player.getPositionY());
+           player.setPosition(player.getPositionX() + player.getSpeed() * dirX ,
+                   player.getPositionY() +  player.getSpeed() * dirY );
            if(isCanMove(player)) {
              // YAYA
            }
            else {
-               player.setPosition(player.getPositionX() - speed * dirX ,
-                       player.getPositionY() - speed * dirY );
+               player.setPosition(player.getPositionX() -  player.getSpeed() * dirX ,
+                       player.getPositionY() -  player.getSpeed() * dirY );
            }
 
    }
@@ -412,7 +412,21 @@ public class ServerGameController {
             }
         }
     }
+    private boolean boundary(Player player) {
+        int playerMapWidth = mapWidth-player.getWidth();
+        int playerMapHeight = mapHeight-player.getHeight();
+        if(player.getPositionX() >playerMapWidth || player.getPositionX()<player.getWidth()) {
+            return  true;
+        }
+        else if (player.getPositionY() > playerMapHeight || player.getPositionY()<player.getHeight()) {
+            return  true;
+        }
+        return  false;
+    }
     private boolean isCanMove(Player a) {
+        if(boundary(a)) {
+            return false;
+        }
         ArrayList<Coin> coinArrayList = cmd.getCoinArrayList();
         ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();
         ArrayList<Item> itemArrayList = cmd.getItemArrayList();
@@ -453,6 +467,8 @@ public class ServerGameController {
     public void isEightySeven(Player player) {
         if(player.getScore()==87) {
             // Upgrade
+            player.setCount87(player.getCount87()+1);
+            player.setScore(0);
         }
         else if (player.getScore()>87) {
             player.setScore(0);
