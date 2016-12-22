@@ -4,6 +4,7 @@ package ncu.sw.TCPSM;
  * Created by NiHao on 2016/10/18.
  */
 
+import ncu.sw.UDPSM.UDPBroadCastClient;
 import ncu.sw.gameServer.ServerGameController;
 
 import java.io.DataInputStream;
@@ -21,7 +22,6 @@ public class WorkerThread implements Runnable{
         this.clientSocket = clientSocket;
         this.id = id;
     }
-
     public void run() {
         String clientStr;
         try{
@@ -41,6 +41,7 @@ public class WorkerThread implements Runnable{
         TCPMultiServer.getInstance().getClientTable().remove(
                 new InetSocketAddress(clientSocket.getInetAddress(),clientSocket.getPort())
         );
+        UDPBroadCastClient.getInstance().removeFromUDPTable(clientSocket.getInetAddress());
         ServerGameController.getInstance().removePlayer(clientSocket.getInetAddress());
     }
     public void stringParsing( String str ) { // TURN 5
