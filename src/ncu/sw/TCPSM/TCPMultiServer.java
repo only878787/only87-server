@@ -3,7 +3,6 @@ package ncu.sw.TCPSM;
 
 
 import ncu.sw.UDPSM.UDPBroadCastClient;
-import ncu.sw.UDPSM.UDPServerReceive;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,8 +60,6 @@ public class TCPMultiServer implements Runnable{
                 clientSocket = this.welcomeSocket.accept();
                 /*System.out.println("Addr : "+ clientSocket.getInetAddress()
                         + " Port : " + clientSocket.getPort() );*/
-                UDPBroadCastClient.getInstance().startFirstReceive(5000);
-                System.out.print("IP is " +clientSocket.getInetAddress()+"\n");
                 UDPBroadCastClient.getInstance().startUDPBroadcast();
                 clientIPTable.add( clientSocket.getInetAddress() );
                 clientTable.add( new InetSocketAddress(clientSocket.getInetAddress(), clientSocket.getPort()));
