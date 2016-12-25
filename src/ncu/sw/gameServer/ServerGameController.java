@@ -41,7 +41,7 @@ public class ServerGameController {
 
     public static ServerGameController getInstance() {
         if(ourInstance == null) {
-          ourInstance  = new ServerGameController(200,1,10);
+          ourInstance  = new ServerGameController(200,20,30);
         }
         return ourInstance;
     }
