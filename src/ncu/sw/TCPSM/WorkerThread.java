@@ -4,10 +4,12 @@ package ncu.sw.TCPSM;
  * Created by NiHao on 2016/10/18.
  */
 
+import ncu.sw.UDPSM.UDPBroadCastClient;
 import ncu.sw.gameServer.ServerGameController;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class WorkerThread implements Runnable{
@@ -31,10 +33,19 @@ public class WorkerThread implements Runnable{
                 stringParsing( clientStr );
             }
         }catch (IOException e){
+            removeWorkerFromClientTable();
+
             System.out.println("one client has left...");
         }
     }
+    public void removeWorkerFromClientTable() {
+        TCPMultiServer.getInstance().getClientTable().remove(
+                new InetSocketAddress(clientSocket.getInetAddress(),clientSocket.getPort())
+        );
+        UDPBroadCastClient.getInstance().removeFromUDPTable(clientSocket.getInetAddress());
+        ServerGameController.getInstance().removePlayer(clientSocket.getInetAddress());
 
+    }
     public void stringParsing( String str ) { // TURN 5
         String[] token = str.split(" ");
         switch ( token[0] ){
@@ -53,12 +64,6 @@ public class WorkerThread implements Runnable{
             case "DISCONNECT" :
                 // remove this player
                 System.out.print("hihihi");
-                ServerGameController.getInstance().removePlayer(clientSocket.getInetAddress());
-                for( int i = 0; i<TCPMultiServer.getInstance().getClientTable().size();i++) {
-                    if(clientSocket.getInetAddress() == TCPMultiServer.getInstance().getClientTable().get(i).getAddress()) {
-                        TCPMultiServer.getInstance().getClientTable().remove(i);
-                    }
-                }
                 isStopped = true;
                 break;
         }

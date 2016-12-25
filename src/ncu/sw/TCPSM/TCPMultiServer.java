@@ -60,9 +60,13 @@ public class TCPMultiServer implements Runnable{
                 clientSocket = this.welcomeSocket.accept();
                 /*System.out.println("Addr : "+ clientSocket.getInetAddress()
                         + " Port : " + clientSocket.getPort() );*/
-                UDPBroadCastClient.getInstance().startUDPBroadcast();
+
+              //  UDPBroadCastClient.getInstance().startFirstReceive(5000);
+                System.out.print("IP is " +clientSocket.getInetAddress()+"\n");
+                UDPBroadCastClient.getInstance().startUDPBroadcast(5000);
                 clientIPTable.add( clientSocket.getInetAddress() );
                 clientTable.add( new InetSocketAddress(clientSocket.getInetAddress(), clientSocket.getPort()));
+                //System.out.println("TCP Server " + clientSocket.getPort() +" " + clientSocket.getLocalPort());
             } catch (IOException e) {
                 if(isStopped()) {
                     System.out.println("Server Stopped.") ;

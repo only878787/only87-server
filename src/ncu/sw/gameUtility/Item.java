@@ -9,7 +9,7 @@ public class Item extends  GameObject{
 
     private int efect;
     public Item(int x,int y) {
-        super(x,y,20,20);
+        super(x,y,35,35);
         setAttribute(0);
     }
     public int getEfect(){
