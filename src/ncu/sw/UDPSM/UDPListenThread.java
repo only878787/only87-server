@@ -35,12 +35,9 @@ public class UDPListenThread extends  Thread {
                 port = packet.getPort();
                 UDPBroadCastClient.getInstance().getUDPTable().add(new InetSocketAddress(address, port));
                 System.out.print("it is first\n");
-                //socket = new DatagramSocket(5000);
-                //UDPBroadCastClient.getInstance().startUDPBroadcast(5000);
                 }
                 socket.close();
         } catch (Exception e) {
-
             e.printStackTrace();
             check = false;
         }

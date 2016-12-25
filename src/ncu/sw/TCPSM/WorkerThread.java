@@ -5,12 +5,15 @@ package ncu.sw.TCPSM;
  */
 
 import ncu.sw.UDPSM.UDPBroadCastClient;
+import ncu.sw.gameServer.BulletTask;
 import ncu.sw.gameServer.ServerGameController;
+import ncu.sw.gameUtility.Player;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Timer;
 
 public class WorkerThread implements Runnable{
     private Socket clientSocket = null;
@@ -44,6 +47,7 @@ public class WorkerThread implements Runnable{
         );
         UDPBroadCastClient.getInstance().removeFromUDPTable(clientSocket.getInetAddress());
         ServerGameController.getInstance().removePlayer(clientSocket.getInetAddress());
+        ServerGameController.getInstance().removePlayer( new InetSocketAddress(clientSocket.getInetAddress(),clientSocket.getPort()));
 
     }
     public void stringParsing( String str ) { // TURN 5
@@ -66,6 +70,18 @@ public class WorkerThread implements Runnable{
                 System.out.print("hihihi");
                 isStopped = true;
                 break;
+            case "ATK" :
+                int dir = Integer.valueOf( token[1] );
+                System.out.println( "Dir : " + dir );
+                for (Player p : ServerGameController.getInstance().getCmd().getPlayerArrayList()) {
+                    if( p.getId().equals( identity ) && p.getScore() !=0 ){
+                        Timer timer = ServerGameController.getInstance().getBulletTimerMap().get(p);
+                        timer.schedule( new BulletTask(p.getPositionX(),p.getPositionY(), p.getScore()/2, dir) ,0, 250 );
+                        p.setScore( p.getScore()/2 );
+                        break;
+                    }
+                }
+
         }
     }
 }
