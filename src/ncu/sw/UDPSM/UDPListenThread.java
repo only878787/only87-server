@@ -1,9 +1,5 @@
 package ncu.sw.UDPSM;
-
 import java.net.*;
-import java.util.Calendar;
-import java.util.Timer;
-
 /**
  * Created by Kevin on 2016/12/22.
  */
@@ -11,7 +7,6 @@ public class UDPListenThread extends  Thread {
     private boolean check = true;
     private DatagramSocket socket;
     private InetAddress address;
-    private InetSocketAddress socketAddress;
     private int port;
     public UDPListenThread(int port) {
         try {
@@ -27,22 +22,21 @@ public class UDPListenThread extends  Thread {
     public synchronized void run() {
         try {
             while(check) {
-                byte[] buf = new byte[2];
+                byte[] buf = new byte[200];
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 System.out.print( "I have to receive to go on.\n");
                 socket.receive(packet);
                 address = packet.getAddress();
                 port = packet.getPort();
-                UDPBroadCastClient.getInstance().getUDPTable().add(new InetSocketAddress(address, port));
+                InetSocketAddress socketAddress = new InetSocketAddress(address, port);
+                String id =  new String (packet.getData(),"UTF-8");
+                UDPBroadCastClient.getInstance().getUDPTable().put(id.trim(),socketAddress);
                 System.out.print("it is first\n");
-                //socket = new DatagramSocket(5000);
-                //UDPBroadCastClient.getInstance().startUDPBroadcast(5000);
-                }
+            }
                 socket.close();
         } catch (Exception e) {
-
             e.printStackTrace();
-            check = false;
+           // check = false;
         }
     }
 }

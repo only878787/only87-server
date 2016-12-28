@@ -11,6 +11,7 @@ public class Item extends  GameObject{
     public Item(int x,int y) {
         super(x,y,35,35);
         setAttribute(0);
+        efect = 0;
     }
     public int getEfect(){
         return efect;

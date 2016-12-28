@@ -1,7 +1,5 @@
 package ncu.sw.gameUtility;
 
-import javafx.scene.image.Image;
-
 /**
  * Created by Arson on 2016/11/1.
  */

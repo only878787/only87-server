@@ -1,30 +1,28 @@
 package ncu.sw.gameServer;
 
+import ncu.sw.UDPSM.UDPBroadCastClient;
 import ncu.sw.gameUtility.*;
-
-import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.concurrent.SynchronousQueue;
+import java.net.InetSocketAddress;
+import java.util.*;
 
 /**
  * Created by Arson on 2016/11/1.
  */
 public class ServerGameController {
-   
-    private int totalCoin;
-    private int totalItem;
-    private int totalObstacle;
+    private final int totalCoin = 250;
+    private final int totalItem = 100;
+    private final int totalObstacle = 100;
     private final int mapWidth = 5000;
     private final int mapHeight= 3000;
     private final int overlayTimes = 10;
+    private final int itemInterval = 4000;
     private Random ran;
     private Cmd cmd;
-
-
+    public final int fastItem = 1;
+    public final int slowItem = 2;
+    public final int bigItem = 3;
+    public final int inverseItem = 4;
     public final static int TURNEAST = 0;
     public final static int TURNSOUTH = 1;
     public final static int TURNNORTH = 2;
@@ -36,29 +34,28 @@ public class ServerGameController {
     public final static int TURNWESTSOUTH = 8;
     public final static int DISCONNECT = 9;
     private static ServerGameController ourInstance ;
-
     private HashMap<Integer, Integer> moveXMap,moveYMap;
+    private HashMap<Player, Timer> itemTimerMap;
+    private HashMap<Player, Timer> bulletTimerMap;
 
     public static ServerGameController getInstance() {
         if(ourInstance == null) {
-          ourInstance  = new ServerGameController(200,20,30);
+          ourInstance  = new ServerGameController();
         }
         return ourInstance;
     }
-    private ServerGameController(int totalCoin, int totalItem, int totalObstacle) {
-        this.totalCoin = totalCoin;
-        this.totalItem = totalItem;
-        this.totalObstacle = totalObstacle;
+    private ServerGameController() {
         cmd = new Cmd();
-
+        itemTimerMap = new HashMap<Player, Timer>();
+        bulletTimerMap = new HashMap<Player, Timer>();
         ran = new Random();
         gameInit();
 
     }
-    public Cmd getCmd() {
+    public synchronized Cmd getCmd() {
         return  this.cmd;
     }
-    public boolean playCreate(String id, InetAddress ipAddress) {
+    public synchronized boolean playCreate(String id, InetSocketAddress ipAddress) {
         //String address = ipAddress.toString();
         System.out.println(id +" is created.");
         if(isSameId(id)) {
@@ -68,8 +65,17 @@ public class ServerGameController {
             Player player = new Player(0, 0, id, ipAddress);
             int[] position = this.randomPosition(player);
             player.setPosition(position[0],position[1]);
+            // add into itemTimer
+            itemTimerMap.put( player, new Timer());
+            bulletTimerMap.put( player, new Timer() );
             cmd.getPlayerArrayList().add(player);
+            xd(id,player);
             return  true;
+        }
+    }
+    private void xd(String id,Player a) {
+        if(id.equals("我是外掛")) {
+            a.setCount87(50);
         }
     }
     private boolean isSameId(String id) {
@@ -97,7 +103,7 @@ public class ServerGameController {
         position[1] = y;
         return position; // 回傳其object的
     }
-    private boolean isOverlay(GameObject a, GameObject b) {
+    public boolean isOverlay(GameObject a, GameObject b) {
         GameObject circleBuf;
         GameObject rectangleBuf;
         if( a.getAttribute() == b.getAttribute() ) { //they are the same shape.
@@ -107,7 +113,6 @@ public class ServerGameController {
                     return false;
                 }
                 else {
-                    System.out.println(" circle same shape overlay");
                     return true;
                 }
             }
@@ -117,7 +122,6 @@ public class ServerGameController {
                     return  false;
                 }
                 else {
-                    System.out.println("rectangle same shape overlay");
                     return true;
                 }
             }
@@ -134,10 +138,8 @@ public class ServerGameController {
             if(isSameQuadrant(circleBuf,rectangleBuf)) {
                 if(findClosetCalcDistance(circleBuf,rectangleBuf)>=circleBuf.getHeight()) {
                     return false;
-
                 }
                 else {
-                    System.out.println("findCloseDistance and not same shape overlay");
                     return  true;
                 }
             }
@@ -148,12 +150,10 @@ public class ServerGameController {
                 return  false;
             }
             else {
-                System.out.println("not same shape overlay");
                 return true;
             }
         }
     }
-
     private double findClosetCalcDistance(GameObject a, GameObject b) {
         double min = Double.POSITIVE_INFINITY;
         double [] buf = new double [4];
@@ -266,7 +266,6 @@ public class ServerGameController {
                 }
             }
         }
-        System.out.print("obstacle size" +obstacleArrayList.size());
     }
     private void initialItem() {
         Item buf  = new Item(0,0);
@@ -367,30 +366,56 @@ public class ServerGameController {
             }
         }
     }
-   public  void playerMove(String id, int direction ) {
-       //search id for this player
-       Player player = null;
-       for(int index = 0; index<cmd.getPlayerArrayList().size(); index++) {
-           player = cmd.getPlayerArrayList().get(index);
-           if (id.equals(player.getId())) {
-               break;
-           }
-       }
-       int dirX = moveXMap.get( direction );
-       int dirY = moveYMap.get( direction );
-       System.out.println("X " + player.getPositionX() + "Y " +player.getPositionY());
-           player.setPosition(player.getPositionX() + player.getSpeed() * dirX ,
-                   player.getPositionY() +  player.getSpeed() * dirY );
-           if(isCanMove(player)) {
-             // YAYA
-           }
-           else {
-               player.setPosition(player.getPositionX() -  player.getSpeed() * dirX ,
-                       player.getPositionY() -  player.getSpeed() * dirY );
-           }
-
-   }
+    public synchronized  void playerMove(String id, int direction ) {
+        //search id for this player
+        Player player = null;
+        for(int index = 0; index<cmd.getPlayerArrayList().size(); index++) {
+            player = cmd.getPlayerArrayList().get(index);
+            if (id.equals(player.getId())) {
+                break;
+            }
+        }
+        int dirX = moveXMap.get( direction );
+        int dirY = moveYMap.get( direction );
+       // System.out.println("X " + player.getPositionX() + "Y " +player.getPositionY());
+        player.setPosition(player.getPositionX() + player.getSpeed() * dirX * player.getMoveDir() ,
+                player.getPositionY() +  player.getSpeed() * dirY * player.getMoveDir() );
+        if(isCanMove(player)) {
+        }
+        else {
+            player.setPosition(player.getPositionX() -  player.getSpeed() * dirX  * player.getMoveDir(),
+                    player.getPositionY() -  player.getSpeed() * dirY * player.getMoveDir() );
+        }
+    }
     private void changePlayerStatus(Item item, Player player) {
+        player.setSpeed( 20 );
+        player.setRadius( 50 );
+        player.setMoveDir( 1 );
+        Timer timer = itemTimerMap.get(player);
+        timer.cancel();
+        itemTimerMap.put( player, new Timer());
+        timer = itemTimerMap.get(player);
+        int randomNum = ran.nextInt( 4 ) +1 ;  // 1~4
+        item.setEfect( randomNum );
+        player.setEffectNum( randomNum );
+        timer.schedule( new ItemTask(player), itemInterval );
+        switch ( item.getEfect() ){
+            case fastItem :
+                //System.out.println("fastItem");
+                player.setSpeed( player.getSpeed() *2 );
+                break;
+            case slowItem :
+                //System.out.println("slowItem");
+                player.setSpeed( player.getSpeed() /8);
+                break;
+            case bigItem:
+                //System.out.println("bigItem");
+                player.setRadius( player.getRadius() * 2 );
+                break;
+            case inverseItem:
+                //System.out.println("inverseItem");
+                player.setMoveDir(  -1 * player.getMoveDir()  );
+        }
 
     }
     private void reRandomObject(GameObject a) {
@@ -403,27 +428,19 @@ public class ServerGameController {
             a.setPosition(x,y);
         }
     }
-    public void removePlayer(InetAddress address) {
+    public synchronized String removePlayer(InetSocketAddress address) {
+        String id;
         for (int i= 0; i<cmd.getPlayerArrayList().size(); i++) {
-            if(address.equals(cmd.getPlayerArrayList().get(i).getAddress())) {
-              //  System.out.println(cmd.getPlayerArrayList().get(i).getAddress() + "removePlayer is called.");
+            Player p =  cmd.getPlayerArrayList().get(i);
+            if( address.equals(p.getSocketAddress())  ){
+                id = cmd.getPlayerArrayList().get(i).getId();
                 cmd.getPlayerArrayList().remove(i);
-                break;
+                return id;
             }
         }
+        return  null;
     }
-    /*private boolean boundary(Player player) {
-        int playerMapWidth = mapWidth-player.getWidth();
-        int playerMapHeight = mapHeight-player.getHeight();
-        if(player.getPositionX() >playerMapWidth || player.getPositionX()<player.getWidth()) {
-            return  true;
-        }
-        else if (player.getPositionY() > playerMapHeight || player.getPositionY()<player.getHeight()) {
-            return  true;
-        }
-        return  false;
-    }*/
-    private boolean boundary (GameObject object) {
+    public  boolean boundary (GameObject object) {
         int playerMapWidth = mapWidth-object.getWidth();
         int playerMapHeight = mapHeight-object.getHeight();
         if(object.getPositionX() >playerMapWidth || object.getPositionX()<object.getWidth()) {
@@ -434,7 +451,7 @@ public class ServerGameController {
         }
         return  false;
     }
-    private boolean isCanMove(Player a) {
+    public synchronized boolean isCanMove(Player a) {
         if(boundary(a)) {
             return false;
         }
@@ -444,15 +461,13 @@ public class ServerGameController {
         ArrayList<Player> playerArrayList = cmd.getPlayerArrayList();
         for(int i = 0; i<obstacleArrayList.size();i++) {
             if( isOverlay(obstacleArrayList.get(i), a)) {
-               // System.out.println("X "+ obstacleArrayList.get(i).getPositionX()+ " Y " + obstacleArrayList.get(i).getPositionY());
-                //System.out.println("playX " + a.getPositionX() + "playY " +a.getPositionY());
-                //show(obstacleArrayList);
-                System.out.print("There has Obstacle. if u could not see it, that is your problem, not mine\n");
+             //   System.out.print("There has Obstacle. if u could not see it, that is your problem, not mine\n");
                 return false;
             }
         }
         for(int i = 0; i<playerArrayList.size();i++) {
             if( isOverlay( playerArrayList.get(i), a) &&( playerArrayList.get(i) != a )) {
+               // System.out.print("Hey! Don't push me \n");
                 return  false;
             }
         }
@@ -460,8 +475,7 @@ public class ServerGameController {
             if( isOverlay( itemArrayList.get(i), a) ) {
                 changePlayerStatus(itemArrayList.get(i),a); // problem 1 如果碰到很多item 吃哪個??
                 reRandomObject(itemArrayList.get(i)); // 討論 item 個數 也跟分數一樣 random ???
-                //bufcmd.getItemArrayList().add(itemArrayList.get(i));
-
+              //  System.out.print("Eat item \n");
             }
         }
         for(int i = 0; i<coinArrayList.size();i++) {
@@ -470,7 +484,7 @@ public class ServerGameController {
                 isEightySeven(a);
                 coinArrayList.get(i).setPoint( setRandomPoint( ran.nextDouble() ) );
                 reRandomObject( coinArrayList.get(i) );
-                //bufcmd.getCoinArrayList().add(coinArrayList.get(i));
+              //  System.out.print("Eat coin \n");
             }
         }
         return  true;
@@ -483,34 +497,72 @@ public class ServerGameController {
         }
         else if (player.getScore()>87) {
             player.setScore(0);
+            if(player.getCount87()!= 0) {
+                player.setCount87(player.getCount87()-1);
+            }
         }
     }
-    private boolean isAllOverlay(GameObject a) {
+    public boolean isOverlayWithCoin(GameObject a) {
         ArrayList<Coin> coinArrayList = cmd.getCoinArrayList();
-        ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();
-        ArrayList<Item> itemArrayList = cmd.getItemArrayList();
-        ArrayList<Player> playerArrayList = cmd.getPlayerArrayList();
         for(int i = 0; i<coinArrayList.size();i++) {
             if( isOverlay( coinArrayList.get(i), a) && ( coinArrayList.get(i) != a )) {
+               // System.out.print("Overlay with coin\n");
                 return true;
             }
         }
-        for(int i = 0; i<itemArrayList.size();i++) {
-            if( isOverlay( itemArrayList.get(i), a) && ( itemArrayList.get(i) != a )) {
-                return true;
-            }
-        }
+        return  false;
+    }
+    public boolean isOverlayWithObstacle(GameObject a) {
+        ArrayList<Obstacle> obstacleArrayList = cmd.getObstacleArrayList();
         for(int i = 0; i<obstacleArrayList.size();i++) {
             if( isOverlay( obstacleArrayList.get(i), a) && ( obstacleArrayList.get(i) != a ) ) {
+              // System.out.print("Overlay with obstacle\n");
                 return true;
             }
         }
+        return  false;
+    }
+    public boolean isOverlayWithItem(GameObject a) {
+        ArrayList<Item> itemArrayList = cmd.getItemArrayList();
+        for(int i = 0; i<itemArrayList.size();i++) {
+            if( isOverlay( itemArrayList.get(i), a) && ( itemArrayList.get(i) != a )) {
+                //System.out.print("Overlay with item\n");
+                return true;
+            }
+        }
+        return  false;
+    }
+    public  boolean isOverlayWithPlayer(GameObject a) {
+        ArrayList<Player> playerArrayList = cmd.getPlayerArrayList();
         for(int i = 0; i<playerArrayList.size();i++) {
             if( isOverlay( playerArrayList.get(i), a) && ( playerArrayList.get(i) != a )) {
+              //  System.out.print("Overlay with player\n");
                 return true;
             }
         }
-        return  boundary(a);
+        return  false;
+    }
+    public boolean isAllOverlay(GameObject a) {
+        if(!isOverlayWithCoin(a)) {
+            if(!isOverlayWithItem(a)) {
+                if(!isOverlayWithObstacle(a)) {
+                    if(!isOverlayWithPlayer(a)) {
+                        if(!boundary(a)) {
+                            return  false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    public HashMap<Integer, Integer> getMoveXMap() {
+        return moveXMap;
+    }
+    public HashMap<Integer, Integer> getMoveYMap() {
+        return moveYMap;
+    }
+    public HashMap<Player, Timer> getBulletTimerMap() {
+        return bulletTimerMap;
     }
 }
-

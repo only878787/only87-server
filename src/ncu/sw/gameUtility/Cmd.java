@@ -20,7 +20,6 @@ public class Cmd implements java.io.Serializable {
         obstacleArrayList = new ArrayList<Obstacle>();
         playerArrayList = new ArrayList<Player>();
     }
-    
     public ArrayList<Coin> getCoinArrayList() {
         return coinArrayList;
     }
