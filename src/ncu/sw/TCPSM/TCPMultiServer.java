@@ -20,12 +20,8 @@ public class TCPMultiServer implements Runnable{
     protected ServerSocket welcomeSocket = null ;
     private boolean isStopped = false;
     private int serverPort;
-
     private ArrayList<InetAddress> clientIPTable;
-
     private ArrayList<InetSocketAddress> clientTable;
-    private InputStream input;
-    private OutputStream output;
     private int idCnt = 0;
 
     private static TCPMultiServer tcpServer = null ;
@@ -51,17 +47,12 @@ public class TCPMultiServer implements Runnable{
         }
         return tcpServer;
     }
-
     public void run(){
         while( !isStopped() ) {
             Socket clientSocket = null;
             /* Accept connection */
             try {
                 clientSocket = this.welcomeSocket.accept();
-                /*System.out.println("Addr : "+ clientSocket.getInetAddress()
-                        + " Port : " + clientSocket.getPort() );*/
-
-              //  UDPBroadCastClient.getInstance().startFirstReceive(5000);
                 System.out.print("IP is " +clientSocket.getInetAddress()+"\n");
                 UDPBroadCastClient.getInstance().startUDPBroadcast(5000);
                 clientIPTable.add( clientSocket.getInetAddress() );

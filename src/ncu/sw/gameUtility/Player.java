@@ -19,6 +19,7 @@ public class Player extends GameObject{
     private int moveDir = 1;
     private Timer itemTimer;
     private int effectNum = 0;
+    private int udpPort = 0;
 
     public void setCount87(int count87) {
         this.count87 = count87;
@@ -32,6 +33,12 @@ public class Player extends GameObject{
         this.speed = speed;
     }
 
+    public int getUdpPort() {
+        return udpPort;
+    }
+    public void setUdpPort(int udpPort) {
+        this.udpPort = udpPort;
+    }
     public Player(int x, int y, String id, InetAddress bufAddress){
         super(x,y,50,50);
         identity = id;
@@ -40,11 +47,9 @@ public class Player extends GameObject{
         count87  = 0;
         speed = 10;
     }
-
     public InetSocketAddress getSocketAddress() {
         return socketAddress;
     }
-
     public Player(int x, int y, String id, InetSocketAddress bufAddress){
         super(x,y,50,50);
         identity = id;
@@ -83,25 +88,18 @@ public class Player extends GameObject{
         this.setHeightandWidth( radius, radius );
         this.radius = radius;
     }
-
-
     public int getMoveDir() {
         return moveDir;
     }
-
     public void setMoveDir(int moveDir) {
         this.moveDir = moveDir;
     }
-
-
     public Timer getItemTimer() {
         return itemTimer;
     }
-
     public void setItemTimer(Timer itemTimer) {
         this.itemTimer = itemTimer;
     }
-
 
     public int getEffectNum() {
         return effectNum;

@@ -12,6 +12,7 @@ import java.io.ObjectOutputStream;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.TimerTask;
 public class UdpServerThread extends TimerTask {
     private Cmd cmd;
@@ -22,17 +23,16 @@ public class UdpServerThread extends TimerTask {
 
     public UdpServerThread(DatagramSocket socket) throws IOException {
         this.cmd = ServerGameController.getInstance().getCmd();
-       // this.socket = new DatagramSocket(5000);
         this.socket = socket;
     }
     public synchronized void run() {
+        HashMap map = UDPBroadCastClient.getInstance().getUDPTable();
         try {
-           for(int i = 0; i<UDPBroadCastClient.getInstance().getUDPTable().size() ; i ++) {
-               address = UDPBroadCastClient.getInstance().getUDPTable().get(i).getAddress();
-               port = UDPBroadCastClient.getInstance().getUDPTable().get(i).getPort();
+            for (Object key : map.keySet()) {
+               address = UDPBroadCastClient.getInstance().getUDPTable().get(key).getAddress();
+               port = UDPBroadCastClient.getInstance().getUDPTable().get(key).getPort();
                ByteArrayOutputStream outputStream = new ByteArrayOutputStream(); //這邊應該算 encode 我們不採用message 的方式存取 ， 我們送整個資料給client
                ObjectOutputStream os = new ObjectOutputStream(outputStream);
-               //os.writeObject(cmd);
                os.writeObject( ServerGameController.getInstance().getCmd() );
                os.flush();
                byte[] data = outputStream.toByteArray();

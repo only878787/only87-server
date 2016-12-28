@@ -14,17 +14,17 @@ public class ItemTask extends TimerTask {
     private int moveDir = 1;
     private Player p;
     private int taskCnt = 1;
-
     public ItemTask(Player p ){
         this.p = p;
         speed = p.getSpeed();
         radius = p.getRadius();
         moveDir = p.getMoveDir();
+        System.out.print("it must happened\n");
     }
     @Override
     public void run() {
-        if( taskCnt > 0){
-            System.out.println( "ItemTask run");
+        if( taskCnt > 0) {
+            System.out.println( "ItemTask finished");
             p.setSpeed( this.speed );
             p.setRadius( this.radius );
             p.setMoveDir( this.moveDir );
